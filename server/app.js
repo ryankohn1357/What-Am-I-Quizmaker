@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const expressHandlebars = require('express-handlebars');
 const session = require('express-session');
-const redisStore = require('connect-redis')(session);
+const RedisStore = require('connect-redis')(session);
 const url = require('url');
 const csrf = require('csurf');
 
@@ -30,7 +30,7 @@ let redisURL = {
 
 let redisPass = 'uI9DaHzjZUvyKSslqy1kOCcIFfzFf2Xy'; // password from RedisLabs
 
-if(process.env.REDISCLOUD_URL) {
+if (process.env.REDISCLOUD_URL) {
   redisURL = url.parse(process.env.REDISCLOUD_URL);
   redisPass = redisURL.auth.split(':')[1];
 }
@@ -48,7 +48,7 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(session({
   key: 'sessionid',
-  store: new redisStore({
+  store: new RedisStore({
     host: redisURL.hostname,
     port: redisURL.port,
     pass: redisPass,
@@ -66,7 +66,7 @@ app.set('views', `${__dirname}/../views`);
 app.use(cookieParser());
 app.use(csrf()); // must come after cookieparser and session and before router
 app.use((err, req, res, next) => {
-  if(err.code !== 'EBADCSRFTOKEN') return next(err);
+  if (err.code !== 'EBADCSRFTOKEN') return next(err);
 
   console.log('Missing CSRF token');
   return false;
