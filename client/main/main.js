@@ -1,14 +1,10 @@
 const handleLogin = (e) => {
     e.preventDefault();
 
-    $("#domoMessage").animate({width:'hide'}, 350);
-
     if($("#user").val() == '' || $("#pass").val() == '') {
-        handleError("RAWR! Username or password is empty");
+        handleError("Username or password is empty");
         return false;
     }
-
-    console.log($("input[name=_csrf]").val());
 
     sendAjax('POST', $("#loginForm").attr("action"), $("#loginForm").serialize(), redirect);
 
@@ -18,15 +14,13 @@ const handleLogin = (e) => {
 const handleSignup = (e) => {
     e.preventDefault();
 
-    $("#domoMessage").animate({width:'hide'}, 350);
-
     if($("#user").val() == '' || $("#pass").val() == '' || $("#pass2").val() == '') {
-        handleError("RAWR! All fields are required");
+        handleError("All fields are required");
         return false;
     }
 
     if($("#pass").val() !== $("#pass2").val()) {
-        handleError("RAWR! Passwords do not match");
+        handleError("Passwords do not match");
         return false;
     }
 
@@ -73,6 +67,39 @@ const SignupWindow = (props) => {
     );
 };
 
+const QuizList = function(props) {
+    if(props.quizzes.length === 0) {
+        return (
+            <div className ="quizList">
+                <h3 className = "emptyQuizzes">No quizzes yet</h3>
+            </div>
+        );
+    }
+
+    const quizNodes = props.quizzes.map(function(quiz) {
+        return (
+            <div key={quiz._id} className = "quiz">
+                <h3 className="quizName"> {quiz.name} </h3>
+                <h3 className = "quizDescription"> {quiz.description} </h3>
+            </div>
+        );
+    });
+
+    return (
+        <div className="quizList">
+            {quizNodes}
+        </div>
+    );
+};
+
+const loadQuizzesFromServer = () => {
+    sendAjax('GET', '/getQuizzes', null, (data) => {
+        ReactDOM.render(
+            <QuizList quizzes={data.quizzes} />, document.querySelector("#content")
+        );
+    });
+};
+
 const createLoginWindow = (csrf) => {
     ReactDOM.render(
         <LoginWindow csrf={csrf} />,
@@ -88,22 +115,36 @@ const createSignupWindow = (csrf) => {
 };
 
 const setup = (csrf) => {
+    const linkOptions = document.querySelector("#linkOptions");
+    const loggedIn = document.querySelector("#isLoggedIn").innerHTML == "true";
+    if(!loggedIn) {
+        linkOptions.innerHTML = "<div class='navlink'><a href='/login' id='loginButton'>Log In</a></div>";
+        linkOptions.innerHTML += "<div class='navlink'><a href='/signup' id='signupButton'>Sign Up</a></div>"
+    }
+    else {
+        linkOptions.innerHTML = "<div class='navlink'><a href='/logout' id='logoutButton'>Log Out</a></div>";
+    }
+
     const loginButton = document.querySelector("#loginButton");
     const signupButton = document.querySelector("#signupButton");
 
-    signupButton.addEventListener("click", (e) => {
-        e.preventDefault();
-        createSignupWindow(csrf);
-        return false;
-    });
+    if(signupButton) {
+        signupButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            createSignupWindow(csrf);
+            return false;
+        });
+    }
 
-    loginButton.addEventListener("click", (e) => {
-        e.preventDefault();
-        createLoginWindow(csrf);
-        return false;
-    });
+    if(loginButton) {
+        loginButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            createLoginWindow(csrf);
+            return false;
+        });
+    }
 
-    createLoginWindow(csrf); // default view
+    loadQuizzesFromServer(); // default view
 };
 
 const getToken = () => {

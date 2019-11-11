@@ -3,14 +3,10 @@
 var handleLogin = function handleLogin(e) {
     e.preventDefault();
 
-    $("#domoMessage").animate({ width: 'hide' }, 350);
-
     if ($("#user").val() == '' || $("#pass").val() == '') {
-        handleError("RAWR! Username or password is empty");
+        handleError("Username or password is empty");
         return false;
     }
-
-    console.log($("input[name=_csrf]").val());
 
     sendAjax('POST', $("#loginForm").attr("action"), $("#loginForm").serialize(), redirect);
 
@@ -20,15 +16,13 @@ var handleLogin = function handleLogin(e) {
 var handleSignup = function handleSignup(e) {
     e.preventDefault();
 
-    $("#domoMessage").animate({ width: 'hide' }, 350);
-
     if ($("#user").val() == '' || $("#pass").val() == '' || $("#pass2").val() == '') {
-        handleError("RAWR! All fields are required");
+        handleError("All fields are required");
         return false;
     }
 
     if ($("#pass").val() !== $("#pass2").val()) {
-        handleError("RAWR! Passwords do not match");
+        handleError("Passwords do not match");
         return false;
     }
 
@@ -95,6 +89,53 @@ var SignupWindow = function SignupWindow(props) {
     );
 };
 
+var QuizList = function QuizList(props) {
+    if (props.quizzes.length === 0) {
+        return React.createElement(
+            "div",
+            { className: "quizList" },
+            React.createElement(
+                "h3",
+                { className: "emptyQuizzes" },
+                "No quizzes yet"
+            )
+        );
+    }
+
+    var quizNodes = props.quizzes.map(function (quiz) {
+        return React.createElement(
+            "div",
+            { key: quiz._id, className: "quiz" },
+            React.createElement(
+                "h3",
+                { className: "quizName" },
+                " ",
+                quiz.name,
+                " "
+            ),
+            React.createElement(
+                "h3",
+                { className: "quizDescription" },
+                " ",
+                quiz.description,
+                " "
+            )
+        );
+    });
+
+    return React.createElement(
+        "div",
+        { className: "quizList" },
+        quizNodes
+    );
+};
+
+var loadQuizzesFromServer = function loadQuizzesFromServer() {
+    sendAjax('GET', '/getQuizzes', null, function (data) {
+        ReactDOM.render(React.createElement(QuizList, { quizzes: data.quizzes }), document.querySelector("#content"));
+    });
+};
+
 var createLoginWindow = function createLoginWindow(csrf) {
     ReactDOM.render(React.createElement(LoginWindow, { csrf: csrf }), document.querySelector("#content"));
 };
@@ -104,22 +145,35 @@ var createSignupWindow = function createSignupWindow(csrf) {
 };
 
 var setup = function setup(csrf) {
+    var linkOptions = document.querySelector("#linkOptions");
+    var loggedIn = document.querySelector("#isLoggedIn").innerHTML == "true";
+    if (!loggedIn) {
+        linkOptions.innerHTML = "<div class='navlink'><a href='/login' id='loginButton'>Log In</a></div>";
+        linkOptions.innerHTML += "<div class='navlink'><a href='/signup' id='signupButton'>Sign Up</a></div>";
+    } else {
+        linkOptions.innerHTML = "<div class='navlink'><a href='/logout' id='logoutButton'>Log Out</a></div>";
+    }
+
     var loginButton = document.querySelector("#loginButton");
     var signupButton = document.querySelector("#signupButton");
 
-    signupButton.addEventListener("click", function (e) {
-        e.preventDefault();
-        createSignupWindow(csrf);
-        return false;
-    });
+    if (signupButton) {
+        signupButton.addEventListener("click", function (e) {
+            e.preventDefault();
+            createSignupWindow(csrf);
+            return false;
+        });
+    }
 
-    loginButton.addEventListener("click", function (e) {
-        e.preventDefault();
-        createLoginWindow(csrf);
-        return false;
-    });
+    if (loginButton) {
+        loginButton.addEventListener("click", function (e) {
+            e.preventDefault();
+            createLoginWindow(csrf);
+            return false;
+        });
+    }
 
-    createLoginWindow(csrf); // default view
+    loadQuizzesFromServer(); // default view
 };
 
 var getToken = function getToken() {
@@ -134,12 +188,10 @@ $(document).ready(function () {
 "use strict";
 
 var handleError = function handleError(message) {
-    $("#errorMessage").text(message);
-    $("#domoMessage").animate({ width: 'toggle' }, 350);
+    console.log(message);
 };
 
 var redirect = function redirect(response) {
-    $("#domoMessage").animate({ width: 'hide' }, 350);
     window.location = response.redirect;
 };
 

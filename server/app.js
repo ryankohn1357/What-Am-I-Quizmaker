@@ -14,7 +14,7 @@ const csrf = require('csurf');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
-const dbURL = process.env.MONGODB_URI || 'mongodb://localhost/DomoMaker';
+const dbURL = process.env.MONGODB_URI || 'mongodb://localhost/What-Am-I-Quizmaker';
 
 mongoose.connect(dbURL, (err) => {
   if (err) {
@@ -60,7 +60,7 @@ app.use(session({
     httpOnly: true,
   },
 }));
-app.engine('handlebars', expressHandlebars({ defaultLayout: 'main' }));
+app.engine('handlebars', expressHandlebars({ defaultLayout: 'base' }));
 app.set('view engine', 'handlebars');
 app.set('views', `${__dirname}/../views`);
 app.use(cookieParser());
