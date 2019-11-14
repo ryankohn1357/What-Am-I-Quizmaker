@@ -123,6 +123,7 @@ const setup = (csrf) => {
     }
     else {
         linkOptions.innerHTML = "<div class='navlink'><a href='/logout' id='logoutButton'>Log Out</a></div>";
+        linkOptions.innerHTML += "<div class='navlink'><a href='/makeQuiz' id='makeQuizButton'>Make Quiz</a></div>";
     }
 
     const loginButton = document.querySelector("#loginButton");

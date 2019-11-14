@@ -37,6 +37,10 @@ const QuizSchema = new mongoose.Schema({
     ],
     required: true,
   },
+  outcomes: {
+    type: [{ name: String, description: String }],
+    required: true,
+  },
   owner: {
     type: mongoose.Schema.ObjectId,
     required: true,
@@ -52,6 +56,7 @@ QuizSchema.statics.toAPI = doc => ({
   name: doc.name,
   description: doc.description,
   questions: doc.questions,
+  outcomes: doc.outcomes,
 });
 
 QuizSchema.statics.findByOwner = (ownerId, callback) => {

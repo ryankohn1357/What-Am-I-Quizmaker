@@ -9,7 +9,9 @@
   "main": "./server/app.js",
   "scripts": {
     "buildMainBundle": "babel ./client/main ./client/helper --presets react --out-file ./hosted/mainBundle.js",
-    "build": "npm run buildMainBundle",
+    "buildQuizmakerBundle": "babel ./client/quizMaker ./client/helper --presets react --out-file ./hosted/quizMakerBundle.js",
+    "build": "npm run buildMainBundle && npm run buildQuizmakerBundle",
+    "watchQuizmakerBundle": "babel --watch ./client/quizMaker ./client/helper --presets react --out-file ./hosted/quizMakerBundle.js",
     "watchMainBundle": "babel --watch ./client/main ./client/helper --presets react --out-file ./hosted/mainBundle.js",
     "nodemon": "nodemon --watch ./server ./server/app.js",
     "start": "node ./server/app.js",

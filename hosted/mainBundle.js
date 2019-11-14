@@ -152,6 +152,7 @@ var setup = function setup(csrf) {
         linkOptions.innerHTML += "<div class='navlink'><a href='/signup' id='signupButton'>Sign Up</a></div>";
     } else {
         linkOptions.innerHTML = "<div class='navlink'><a href='/logout' id='logoutButton'>Log Out</a></div>";
+        linkOptions.innerHTML += "<div class='navlink'><a href='/makeQuiz' id='makeQuizButton'>Make Quiz</a></div>";
     }
 
     var loginButton = document.querySelector("#loginButton");
