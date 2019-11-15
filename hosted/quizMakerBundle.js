@@ -1,8 +1,11 @@
 "use strict";
 
 var quiz = {};
+var quizName = "";
+var quizDescription = "";
 var numQuestions = 1;
 var numOutcomes = 1;
+var answersPerQuestion = 4;
 var questionPos = 0;
 var outcomes = [];
 
@@ -15,11 +18,11 @@ var handleInitialWindow = function handleInitialWindow() {
         return false;
     }
 
-    quiz.name = name;
-    quiz.description = description;
-
+    quizName = name;
+    quizDescription = description;
     numQuestions = Number(document.querySelector("#numQuestions").value);
     numOutcomes = Number(document.querySelector("#numOutcomes").value);
+    answersPerQuestion = Number(document.querySelector("#answersPerQuestion").value);
     document.querySelector("#content").innerHTML = "";
     createOutcomesWindow();
 };
@@ -70,12 +73,23 @@ var InitialWindow = function InitialWindow() {
         React.createElement(
             "label",
             null,
+            "Answers Per Question:",
+            React.createElement("input", { id: "answersPerQuestion", type: "range", min: "2", max: "6" }),
+            React.createElement(
+                "label",
+                { id: "answersPerQuestionSliderLabel" },
+                "4"
+            )
+        ),
+        React.createElement(
+            "label",
+            null,
             "Number of Possible Outcomes:",
-            React.createElement("input", { id: "numOutcomes", type: "range", min: "1", max: "15" }),
+            React.createElement("input", { id: "numOutcomes", type: "range", min: "2", max: "15" }),
             React.createElement(
                 "label",
                 { id: "outcomeSliderLabel" },
-                "1"
+                "2"
             )
         ),
         React.createElement(
@@ -132,31 +146,92 @@ var QuestionsWindow = function QuestionsWindow() {
     for (var i = 0; i < numQuestions; i++) {
         questionArray.push(i);
     }
+    var answerArray = [];
+    for (var _i = 0; _i < answersPerQuestion; _i++) {
+        answerArray.push(_i);
+    }
+    var outcomeArray = [];
+    for (var _i2 = 0; _i2 < numOutcomes; _i2++) {
+        outcomeArray.push(_i2);
+    }
+
+    var outcomeNodes = outcomeArray.map(function (num) {
+        return React.createElement(
+            "div",
+            { className: "outcomeContainer", id: "outcomeContainer" + num },
+            React.createElement(
+                "div",
+                null,
+                React.createElement(
+                    "h3",
+                    { className: "outcome" },
+                    outcomes[num].name
+                ),
+                React.createElement(
+                    "label",
+                    null,
+                    "Weight:",
+                    React.createElement("input", { className: "weight", type: "range", min: "0", max: "100" }),
+                    React.createElement(
+                        "label",
+                        { className: "weightSliderLabel" },
+                        "0"
+                    )
+                )
+            )
+        );
+    });
+
+    var answerNodes = answerArray.map(function (num) {
+        return React.createElement(
+            "div",
+            { "class": "answerContainer", id: "answerContainer" + num },
+            React.createElement(
+                "label",
+                null,
+                "Answer ",
+                num + 1,
+                ":",
+                React.createElement("textarea", { className: "answer" })
+            ),
+            React.createElement(
+                "div",
+                { className: "outcomeNodes" },
+                outcomeNodes
+            )
+        );
+    });
+
+    var questionNodes = questionArray.map(function (num) {
+        return React.createElement(
+            "div",
+            { className: "questionContainer", id: "questionContainer" + num },
+            React.createElement(
+                "label",
+                null,
+                "Question:",
+                React.createElement("textarea", { className: "question" })
+            ),
+            React.createElement(
+                "label",
+                null,
+                "Answers:",
+                React.createElement(
+                    "div",
+                    { className: "answerContainers" },
+                    answerNodes
+                )
+            )
+        );
+    });
 
     return React.createElement(
         "div",
         null,
         React.createElement(
             "div",
-            { id: "questionContainers" },
-            questionArray.map(function (questionNum) {
-                return React.createElement(
-                    "div",
-                    { id: "questionContainer" + questionNum },
-                    React.createElement(
-                        "label",
-                        null,
-                        "Question:",
-                        React.createElement("textarea", { id: "question" + questionNum })
-                    ),
-                    React.createElement(
-                        "label",
-                        null,
-                        "Outcome Weights:",
-                        React.createElement("div", { id: "outcomeWeightContainer" + questionNum })
-                    )
-                );
-            })
+            { id: "questions" },
+            questionNodes
         ),
         React.createElement(
             "button",
@@ -166,35 +241,70 @@ var QuestionsWindow = function QuestionsWindow() {
     );
 };
 
-var OutcomeWeights = function OutcomeWeights() {
-    var outcomeNodes = outcomes.map(function (outcome) {
-        return React.createElement(
-            "div",
-            null,
-            React.createElement(
-                "h3",
-                null,
-                outcome.name
-            ),
-            React.createElement(
-                "label",
-                null,
-                "Weight:",
-                React.createElement("input", { id: "weight", type: "range", min: "0", max: "100" }),
-                React.createElement(
-                    "label",
-                    { id: "weightSliderLabel" },
-                    "0"
-                )
-            )
-        );
-    });
+var createQuestionsWindow = function createQuestionsWindow() {
+    ReactDOM.render(React.createElement(QuestionsWindow, null), document.querySelector("#content"));
 
-    return React.createElement(
-        "div",
-        { id: "outcomeWeightsContainer" },
-        outcomeNodes
-    );
+    var questions = document.querySelector("#questions");
+    for (var i = 0; i < numQuestions; i++) {
+        var questionContainer = questions.querySelector("#questionContainer" + i);
+        var answerContainers = questionContainer.querySelector(".answerContainers");
+        for (var j = 0; j < answersPerQuestion; j++) {
+            var answerContainer = answerContainers.querySelector("#answerContainer" + j);
+
+            var _loop = function _loop(k) {
+                var outcomeContainer = answerContainer.querySelector("#outcomeContainer" + k);
+                var weightSlider = outcomeContainer.querySelector(".weight");
+                weightSlider.value = 0;
+                weightSlider.addEventListener("input", function (e) {
+                    outcomeContainer.querySelector(".weightSliderLabel").innerHTML = e.target.value;
+                });
+            };
+
+            for (var k = 0; k < numOutcomes; k++) {
+                _loop(k);
+            }
+        }
+    }
+
+    document.querySelector("#questionSubmitButton").addEventListener("click", function () {
+        getToken(handleQuizSubmission);
+    });
+};
+
+var handleQuizSubmission = function handleQuizSubmission(csrf) {
+    quiz.name = quizName;
+    quiz.description = quizDescription;
+    quiz.outcomes = outcomes;
+    quiz.questions = [];
+
+    var questions = document.querySelector("#questions");
+    for (var i = 0; i < numQuestions; i++) {
+        var newQuestion = {};
+        var questionContainer = questions.querySelector("#questionContainer" + i);
+        newQuestion.question = questionContainer.querySelector(".question").value;
+        var answers = [];
+        var answerContainers = questionContainer.querySelector(".answerContainers");
+        for (var j = 0; j < answersPerQuestion; j++) {
+            var answerContainer = answerContainers.querySelector("#answerContainer" + j);
+            var newAnswer = {};
+            newAnswer.answer = answerContainer.querySelector(".answer").value;
+            var _outcomes = answerContainer.querySelector(".outcomeNodes");
+            var weights = [];
+            for (var k = 0; k < numOutcomes; k++) {
+                var _outcomeContainer = _outcomes.querySelector("#outcomeContainer" + k);
+                var newWeight = {};
+                newWeight.outcome = _outcomeContainer.querySelector(".outcome").innerHTML;
+                newWeight.weight = _outcomeContainer.querySelector(".weight").value;
+                weights.push(newWeight);
+            }
+            newAnswer.weights = weights;
+            answers.push(newAnswer);
+        }
+        newQuestion.answers = answers;
+        quiz.questions.push(newQuestion);
+    }
+
+    console.log(quiz);
 };
 
 var createInitialWindow = function createInitialWindow() {
@@ -207,23 +317,20 @@ var createInitialWindow = function createInitialWindow() {
         document.querySelector("#questionSliderLabel").innerHTML = e.target.value;
     });
     var numOutcomesSlider = document.querySelector("#numOutcomes");
-    numOutcomesSlider.value = 1;
+    numOutcomesSlider.value = 2;
     numOutcomesSlider.addEventListener("input", function (e) {
         document.querySelector("#outcomeSliderLabel").innerHTML = e.target.value;
+    });
+    var answersPerQuestionSlider = document.querySelector("#answersPerQuestion");
+    answersPerQuestionSlider.value = 4;
+    answersPerQuestionSlider.addEventListener("input", function (e) {
+        document.querySelector("#answersPerQuestionSliderLabel").innerHTML = e.target.value;
     });
 };
 
 var createOutcomesWindow = function createOutcomesWindow() {
     ReactDOM.render(React.createElement(OutcomesWindow, null), document.querySelector("#content"));
     document.querySelector("#outcomeSubmitButton").addEventListener("click", handleQuizOutcomes);
-};
-
-var createQuestionsWindow = function createQuestionsWindow() {
-    ReactDOM.render(React.createElement(QuestionsWindow, null), document.querySelector("#content"));
-
-    for (var i = 0; i < numQuestions; i++) {
-        ReactDOM.render(React.createElement(OutcomeWeights, null), document.querySelector("#outcomeWeightContainer" + i));
-    }
 };
 
 var setup = function setup() {
