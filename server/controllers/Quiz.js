@@ -2,7 +2,7 @@ const models = require('../models');
 const Quiz = models.Quiz;
 
 const createQuiz = (req, res) => {
-  if (!req.body.name || !req.body.description || !req.body.questions) {
+  if (!req.body.name || !req.body.description || !req.body.questions || !req.body.outcomes) {
     return res.status(400).json({ error: 'Missing required field' });
   }
 
@@ -11,6 +11,7 @@ const createQuiz = (req, res) => {
     description: req.body.description,
     owner: req.session.account._id,
     questions: req.body.questions,
+    outcomes: req.body.outcomes,
   };
 
   const newQuiz = new Quiz.QuizModel(quizData);

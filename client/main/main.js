@@ -37,10 +37,8 @@ const LoginWindow = (props) => {
               method="POST"
               className="mainForm"
         >
-            <label htmlFor="username">Username: </label>
-            <input id="user" type="text" name="username" placeholder="username" />
-            <label htmlFor="pass">Password: </label>
-            <input id="pass" type="password" name="pass" placeholder="password" />
+            <input id="user" type="text" name="username" placeholder="Username" />
+            <input id="pass" type="password" name="pass" placeholder="Password" />
             <input type="hidden" name="_csrf" value={props.csrf} />
             <input className="formSubmit" type="submit" value="Sign in" />
         </form>
@@ -55,12 +53,9 @@ const SignupWindow = (props) => {
               method="POST"
               className="mainForm"
         >
-            <label htmlFor="username">Username: </label>
-            <input id="user" type="text" name="username" placeholder="username" />
-            <label htmlFor="pass">Password: </label>
-            <input id="pass" type="password" name="pass" placeholder="password" />
-            <label htmlFor="pass2">Password: </label>
-            <input id="pass2" type="password" name="pass2" placeholder="retype password" />
+            <input id="user" type="text" name="username" placeholder="Username" />
+            <input id="pass" type="password" name="pass" placeholder="Password" />
+            <input id="pass2" type="password" name="pass2" placeholder="Retype Password" />
             <input type="hidden" name="_csrf" value={props.csrf} />
             <input className="formSubmit" type="submit" value="Sign up" />
         </form>
@@ -118,12 +113,12 @@ const setup = (csrf) => {
     const linkOptions = document.querySelector("#linkOptions");
     const loggedIn = document.querySelector("#isLoggedIn").innerHTML == "true";
     if(!loggedIn) {
-        linkOptions.innerHTML = "<div class='navlink'><a href='/login' id='loginButton'>Log In</a></div>";
-        linkOptions.innerHTML += "<div class='navlink'><a href='/signup' id='signupButton'>Sign Up</a></div>"
+        linkOptions.innerHTML = "<li class='navlink'><a href='/login' id='loginButton'>Log In</a></li>";
+        linkOptions.innerHTML += "<li class='navlink'><a href='/signup' id='signupButton'>Sign Up</a></li>"
     }
     else {
-        linkOptions.innerHTML = "<div class='navlink'><a href='/logout' id='logoutButton'>Log Out</a></div>";
-        linkOptions.innerHTML += "<div class='navlink'><a href='/makeQuiz' id='makeQuizButton'>Make Quiz</a></div>";
+        linkOptions.innerHTML = "<li class='navlink'><a href='/logout' id='logoutButton'>Log Out</a></li>";
+        linkOptions.innerHTML += "<li class='navlink'><a href='/makeQuiz' id='makeQuizButton'>Make Quiz</a></li>";
     }
 
     const loginButton = document.querySelector("#loginButton");

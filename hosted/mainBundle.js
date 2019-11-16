@@ -40,18 +40,8 @@ var LoginWindow = function LoginWindow(props) {
             method: "POST",
             className: "mainForm"
         },
-        React.createElement(
-            "label",
-            { htmlFor: "username" },
-            "Username: "
-        ),
-        React.createElement("input", { id: "user", type: "text", name: "username", placeholder: "username" }),
-        React.createElement(
-            "label",
-            { htmlFor: "pass" },
-            "Password: "
-        ),
-        React.createElement("input", { id: "pass", type: "password", name: "pass", placeholder: "password" }),
+        React.createElement("input", { id: "user", type: "text", name: "username", placeholder: "Username" }),
+        React.createElement("input", { id: "pass", type: "password", name: "pass", placeholder: "Password" }),
         React.createElement("input", { type: "hidden", name: "_csrf", value: props.csrf }),
         React.createElement("input", { className: "formSubmit", type: "submit", value: "Sign in" })
     );
@@ -66,24 +56,9 @@ var SignupWindow = function SignupWindow(props) {
             method: "POST",
             className: "mainForm"
         },
-        React.createElement(
-            "label",
-            { htmlFor: "username" },
-            "Username: "
-        ),
-        React.createElement("input", { id: "user", type: "text", name: "username", placeholder: "username" }),
-        React.createElement(
-            "label",
-            { htmlFor: "pass" },
-            "Password: "
-        ),
-        React.createElement("input", { id: "pass", type: "password", name: "pass", placeholder: "password" }),
-        React.createElement(
-            "label",
-            { htmlFor: "pass2" },
-            "Password: "
-        ),
-        React.createElement("input", { id: "pass2", type: "password", name: "pass2", placeholder: "retype password" }),
+        React.createElement("input", { id: "user", type: "text", name: "username", placeholder: "Username" }),
+        React.createElement("input", { id: "pass", type: "password", name: "pass", placeholder: "Password" }),
+        React.createElement("input", { id: "pass2", type: "password", name: "pass2", placeholder: "Retype Password" }),
         React.createElement("input", { type: "hidden", name: "_csrf", value: props.csrf }),
         React.createElement("input", { className: "formSubmit", type: "submit", value: "Sign up" })
     );
@@ -148,11 +123,11 @@ var setup = function setup(csrf) {
     var linkOptions = document.querySelector("#linkOptions");
     var loggedIn = document.querySelector("#isLoggedIn").innerHTML == "true";
     if (!loggedIn) {
-        linkOptions.innerHTML = "<div class='navlink'><a href='/login' id='loginButton'>Log In</a></div>";
-        linkOptions.innerHTML += "<div class='navlink'><a href='/signup' id='signupButton'>Sign Up</a></div>";
+        linkOptions.innerHTML = "<li class='navlink'><a href='/login' id='loginButton'>Log In</a></li>";
+        linkOptions.innerHTML += "<li class='navlink'><a href='/signup' id='signupButton'>Sign Up</a></li>";
     } else {
-        linkOptions.innerHTML = "<div class='navlink'><a href='/logout' id='logoutButton'>Log Out</a></div>";
-        linkOptions.innerHTML += "<div class='navlink'><a href='/makeQuiz' id='makeQuizButton'>Make Quiz</a></div>";
+        linkOptions.innerHTML = "<li class='navlink'><a href='/logout' id='logoutButton'>Log Out</a></li>";
+        linkOptions.innerHTML += "<li class='navlink'><a href='/makeQuiz' id='makeQuizButton'>Make Quiz</a></li>";
     }
 
     var loginButton = document.querySelector("#loginButton");

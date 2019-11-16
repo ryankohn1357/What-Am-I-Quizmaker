@@ -10,6 +10,7 @@ let outcomes = [];
 const handleInitialWindow = () => {
     const name = document.querySelector("#quizName").value;
     const description = document.querySelector("#quizDescription").value;
+    const csrf = document.querySelector("#_csrf").value;
 
     if (name == '' || description == '') {
         handleError("Missing quiz name or description");
@@ -22,7 +23,7 @@ const handleInitialWindow = () => {
     numOutcomes = Number(document.querySelector("#numOutcomes").value);
     answersPerQuestion = Number(document.querySelector("#answersPerQuestion").value);
     document.querySelector("#content").innerHTML = "";
-    createOutcomesWindow();
+    createOutcomesWindow(csrf);
 };
 
 const handleQuizOutcomes = () => {
@@ -37,37 +38,83 @@ const handleQuizOutcomes = () => {
         }
         outcomes.push({ name: outcomeName, description: outcomeDescription });
     }
+    const csrf = document.querySelector("#_csrf").value;
     document.querySelector("#content").innerHTML = "";
-    createQuestionsWindow();
+    createQuestionsWindow(csrf);
 };
 
-const InitialWindow = () => {
+const handleQuizSubmission = () => {
+    quiz.name = quizName;
+    quiz.description = quizDescription;
+    quiz.outcomes = outcomes;
+    quiz.questions = [];
+
+    const questions = document.querySelector("#questions");
+    for (let i = 0; i < numQuestions; i++) {
+        const newQuestion = {};
+        const questionContainer = questions.querySelector(`#questionContainer${i}`);
+        newQuestion.question = questionContainer.querySelector(".question").value;
+        if (newQuestion.question == '') {
+            handleError("Missing question");
+            quiz = {};
+            return false;
+        }
+        let answers = [];
+        const answerContainers = questionContainer.querySelector(".answerContainers");
+        for (let j = 0; j < answersPerQuestion; j++) {
+            const answerContainer = answerContainers.querySelector(`#answerContainer${j}`);
+            const newAnswer = {};
+            newAnswer.answer = answerContainer.querySelector(".answer").value;
+            if (newAnswer.answer == '') {
+                handleError("Missing answer");
+                quiz = {};
+                return false;
+            }
+            const outcomes = answerContainer.querySelector(".outcomeNodes");
+            let weights = [];
+            for (let k = 0; k < numOutcomes; k++) {
+                const outcomeContainer = outcomes.querySelector(`#outcomeContainer${k}`);
+                const newWeight = {};
+                newWeight.outcome = outcomeContainer.querySelector(".outcome").innerHTML;
+                newWeight.weight = outcomeContainer.querySelector(".weight").value;
+                weights.push(newWeight);
+            }
+            newAnswer.weights = weights;
+            answers.push(newAnswer);
+        }
+        newQuestion.answers = answers;
+        quiz.questions.push(newQuestion);
+    }
+
+    const csrf = document.querySelector("#_csrf").value;
+
+    sendAjax('POST', "/makeQuiz", {
+        _csrf: csrf, questions: quiz.questions,
+        name: quiz.name, description: quiz.description, outcomes: quiz.outcomes
+    }, redirect);
+};
+
+const InitialWindow = (props) => {
     return (
         <div id="initialQuizWindow">
-            <label>Quiz Name:
-                <input id="quizName"></input>
-            </label>
-            <label>Quiz Description:
-                <textarea id="quizDescription"></textarea>
-            </label>
-            <label>Number of Questions:
-                <input id="numQuestions" type="range" min="1" max="50" />
-                <label id="questionSliderLabel">1</label>
-            </label>
-            <label>Answers Per Question:
-                <input id="answersPerQuestion" type="range" min="2" max="6" />
-                <label id="answersPerQuestionSliderLabel">4</label>
-            </label>
-            <label>Number of Possible Outcomes:
-                <input id="numOutcomes" type="range" min="2" max="15" />
-                <label id="outcomeSliderLabel">2</label>
-            </label>
+            <input id="quizName" placeholder="Quiz Name"></input>
+            <textarea id="quizDescription" placeholder="Quiz Description"></textarea>
+            <label>Number of Questions:</label>
+            <input id="numQuestions" type="range" min="1" max="50" />
+            <label id="questionSliderLabel">1</label>
+            <label>Answers Per Question:</label>
+            <input id="answersPerQuestion" type="range" min="2" max="6" />
+            <label id="answersPerQuestionSliderLabel">4</label>
+            <label>Number of Possible Outcomes:</label>
+            <input id="numOutcomes" type="range" min="2" max="15" />
+            <label id="outcomeSliderLabel">2</label>
             <button id="initialSubmitButton">Next</button>
+            <input type="hidden" value={props.csrf} id="_csrf" />
         </div>
     );
 };
 
-const OutcomesWindow = () => {
+const OutcomesWindow = (props) => {
     let outcomeArray = [];
     for (let i = 0; i < numOutcomes; i++) {
         outcomeArray.push(i);
@@ -75,28 +122,25 @@ const OutcomesWindow = () => {
 
     const outcomeNodes = outcomeArray.map(function (num) {
         return (
-            <div id={"outcome" + num}>
-                <label>Outcome Name:
-                    <input id={"outcomeName" + num}></input>
-                </label>
-                <label>Outcome Description:
-                    <input id={"outcomeDescription" + num}></input>
-                </label>
+            <div id={"outcome" + num} className="outcome">
+                <input id={"outcomeName" + num} placeholder={"Outcome " + num + " Name"}></input>
+                <input id={"outcomeDescription" + num} placeholder={"Outcome " + num + " Description"}></input>
             </div>
         );
     });
 
     return (
         <div>
-            <div>
+            <div id="outcomeWindow">
                 {outcomeNodes}
             </div>
             <button id="outcomeSubmitButton">Next</button>
+            <input type="hidden" value={props.csrf} id="_csrf" />
         </div>
     );
 };
 
-const QuestionsWindow = () => {
+const QuestionsWindow = (props) => {
     let questionArray = [];
     for (let i = 0; i < numQuestions; i++) {
         questionArray.push(i);
@@ -127,9 +171,7 @@ const QuestionsWindow = () => {
     const answerNodes = answerArray.map(function (num) {
         return (
             <div class="answerContainer" id={"answerContainer" + num}>
-                <label>Answer {num + 1}:
-                    <textarea className="answer"></textarea>
-                </label>
+                    <textarea className="answer" placeholder={"Answer" + (num + 1)}></textarea>
                 <div className="outcomeNodes">
                     {outcomeNodes}
                 </div>
@@ -140,14 +182,10 @@ const QuestionsWindow = () => {
     const questionNodes = questionArray.map(function (num) {
         return (
             <div className="questionContainer" id={"questionContainer" + num}>
-                <label>Question:
-                <textarea className="question"></textarea>
-                </label>
-                <label>Answers:
+                <textarea className="question" placeholder="Question"></textarea>
                     <div className="answerContainers">
                         {answerNodes}
                     </div>
-                </label>
             </div>
         );
     });
@@ -158,13 +196,14 @@ const QuestionsWindow = () => {
                 {questionNodes}
             </div>
             <button id="questionSubmitButton">Submit Quiz</button>
+            <input type="hidden" value={props.csrf} id="_csrf" />
         </div>
     );
 };
 
-const createQuestionsWindow = () => {
+const createQuestionsWindow = (csrf) => {
     ReactDOM.render(
-        <QuestionsWindow />,
+        <QuestionsWindow csrf={csrf} />,
         document.querySelector("#content")
     );
 
@@ -172,9 +211,9 @@ const createQuestionsWindow = () => {
     for (let i = 0; i < numQuestions; i++) {
         const questionContainer = questions.querySelector(`#questionContainer${i}`);
         const answerContainers = questionContainer.querySelector(".answerContainers");
-        for(let j = 0; j < answersPerQuestion; j++) {
+        for (let j = 0; j < answersPerQuestion; j++) {
             const answerContainer = answerContainers.querySelector(`#answerContainer${j}`);
-            for(let k = 0; k < numOutcomes; k++) {
+            for (let k = 0; k < numOutcomes; k++) {
                 const outcomeContainer = answerContainer.querySelector(`#outcomeContainer${k}`);
                 const weightSlider = outcomeContainer.querySelector(".weight");
                 weightSlider.value = 0;
@@ -186,54 +225,18 @@ const createQuestionsWindow = () => {
     }
 
     document.querySelector("#questionSubmitButton").addEventListener("click", () => {
-        getToken(handleQuizSubmission);
+        handleQuizSubmission();
     });
 };
 
-const handleQuizSubmission = (csrf) => {
-    quiz.name = quizName;
-    quiz.description = quizDescription;
-    quiz.outcomes = outcomes;
-    quiz.questions = [];
-
-    const questions = document.querySelector("#questions");
-    for(let i = 0; i < numQuestions; i++)
-    {
-        const newQuestion = {};
-        const questionContainer = questions.querySelector(`#questionContainer${i}`);
-        newQuestion.question = questionContainer.querySelector(".question").value;
-        let answers = [];
-        const answerContainers = questionContainer.querySelector(".answerContainers");
-        for(let j = 0; j < answersPerQuestion; j++) {
-            const answerContainer = answerContainers.querySelector(`#answerContainer${j}`);
-            const newAnswer = {};
-            newAnswer.answer = answerContainer.querySelector(".answer").value;
-            const outcomes = answerContainer.querySelector(".outcomeNodes");
-            let weights = [];
-            for(let k = 0; k < numOutcomes; k++) {
-                const outcomeContainer = outcomes.querySelector(`#outcomeContainer${k}`);
-                const newWeight = {};
-                newWeight.outcome = outcomeContainer.querySelector(".outcome").innerHTML;
-                newWeight.weight = outcomeContainer.querySelector(".weight").value;
-                weights.push(newWeight);
-            }
-            newAnswer.weights = weights;
-            answers.push(newAnswer);
-        }
-        newQuestion.answers = answers;
-        quiz.questions.push(newQuestion);
-    }
-
-    console.log(quiz);
-};
-
-const createInitialWindow = () => {
+const createInitialWindow = (csrf) => {
     ReactDOM.render(
-        <InitialWindow />,
+        <InitialWindow csrf={csrf} />,
         document.querySelector("#content")
     );
-    document.querySelector("#initialSubmitButton").addEventListener("click", handleInitialWindow);
-
+    document.querySelector("#initialSubmitButton").addEventListener("click", () => {
+        handleInitialWindow();
+    });
     let numQuestionsSlider = document.querySelector("#numQuestions");
     numQuestionsSlider.value = 1;
     numQuestionsSlider.addEventListener("input", e => {
@@ -251,24 +254,26 @@ const createInitialWindow = () => {
     });
 };
 
-const createOutcomesWindow = () => {
+const createOutcomesWindow = (csrf) => {
     ReactDOM.render(
-        <OutcomesWindow />,
+        <OutcomesWindow csrf={csrf} />,
         document.querySelector("#content")
     );
-    document.querySelector("#outcomeSubmitButton").addEventListener("click", handleQuizOutcomes);
+    document.querySelector("#outcomeSubmitButton").addEventListener("click", () => {
+        handleQuizOutcomes();
+    });
 };
 
-const setup = () => {
-    createInitialWindow();
+const setup = (csrf) => {
+    createInitialWindow(csrf);
 };
 
-const getToken = (callback) => {
+const getToken = () => {
     sendAjax('GET', '/getToken', null, (result) => {
-        callback(result.csrfToken);
+        setup(result.csrfToken);
     });
 };
 
 $(document).ready(function () {
-    setup();
+    getToken();
 });

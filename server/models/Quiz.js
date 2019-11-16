@@ -57,6 +57,7 @@ QuizSchema.statics.toAPI = doc => ({
   description: doc.description,
   questions: doc.questions,
   outcomes: doc.outcomes,
+  id: doc._id,
 });
 
 QuizSchema.statics.findByOwner = (ownerId, callback) => {

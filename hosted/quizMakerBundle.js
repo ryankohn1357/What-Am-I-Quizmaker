@@ -12,6 +12,7 @@ var outcomes = [];
 var handleInitialWindow = function handleInitialWindow() {
     var name = document.querySelector("#quizName").value;
     var description = document.querySelector("#quizDescription").value;
+    var csrf = document.querySelector("#_csrf").value;
 
     if (name == '' || description == '') {
         handleError("Missing quiz name or description");
@@ -24,7 +25,7 @@ var handleInitialWindow = function handleInitialWindow() {
     numOutcomes = Number(document.querySelector("#numOutcomes").value);
     answersPerQuestion = Number(document.querySelector("#answersPerQuestion").value);
     document.querySelector("#content").innerHTML = "";
-    createOutcomesWindow();
+    createOutcomesWindow(csrf);
 };
 
 var handleQuizOutcomes = function handleQuizOutcomes() {
@@ -39,68 +40,111 @@ var handleQuizOutcomes = function handleQuizOutcomes() {
         }
         outcomes.push({ name: outcomeName, description: outcomeDescription });
     }
+    var csrf = document.querySelector("#_csrf").value;
     document.querySelector("#content").innerHTML = "";
-    createQuestionsWindow();
+    createQuestionsWindow(csrf);
 };
 
-var InitialWindow = function InitialWindow() {
+var handleQuizSubmission = function handleQuizSubmission() {
+    quiz.name = quizName;
+    quiz.description = quizDescription;
+    quiz.outcomes = outcomes;
+    quiz.questions = [];
+
+    var questions = document.querySelector("#questions");
+    for (var i = 0; i < numQuestions; i++) {
+        var newQuestion = {};
+        var questionContainer = questions.querySelector("#questionContainer" + i);
+        newQuestion.question = questionContainer.querySelector(".question").value;
+        if (newQuestion.question == '') {
+            handleError("Missing question");
+            quiz = {};
+            return false;
+        }
+        var answers = [];
+        var answerContainers = questionContainer.querySelector(".answerContainers");
+        for (var j = 0; j < answersPerQuestion; j++) {
+            var answerContainer = answerContainers.querySelector("#answerContainer" + j);
+            var newAnswer = {};
+            newAnswer.answer = answerContainer.querySelector(".answer").value;
+            if (newAnswer.answer == '') {
+                handleError("Missing answer");
+                quiz = {};
+                return false;
+            }
+            var _outcomes = answerContainer.querySelector(".outcomeNodes");
+            var weights = [];
+            for (var k = 0; k < numOutcomes; k++) {
+                var outcomeContainer = _outcomes.querySelector("#outcomeContainer" + k);
+                var newWeight = {};
+                newWeight.outcome = outcomeContainer.querySelector(".outcome").innerHTML;
+                newWeight.weight = outcomeContainer.querySelector(".weight").value;
+                weights.push(newWeight);
+            }
+            newAnswer.weights = weights;
+            answers.push(newAnswer);
+        }
+        newQuestion.answers = answers;
+        quiz.questions.push(newQuestion);
+    }
+
+    var csrf = document.querySelector("#_csrf").value;
+
+    sendAjax('POST', "/makeQuiz", {
+        _csrf: csrf, questions: quiz.questions,
+        name: quiz.name, description: quiz.description, outcomes: quiz.outcomes
+    }, redirect);
+};
+
+var InitialWindow = function InitialWindow(props) {
     return React.createElement(
         "div",
         { id: "initialQuizWindow" },
+        React.createElement("input", { id: "quizName", placeholder: "Quiz Name" }),
+        React.createElement("textarea", { id: "quizDescription", placeholder: "Quiz Description" }),
         React.createElement(
             "label",
             null,
-            "Quiz Name:",
-            React.createElement("input", { id: "quizName" })
+            "Number of Questions:"
+        ),
+        React.createElement("input", { id: "numQuestions", type: "range", min: "1", max: "50" }),
+        React.createElement(
+            "label",
+            { id: "questionSliderLabel" },
+            "1"
         ),
         React.createElement(
             "label",
             null,
-            "Quiz Description:",
-            React.createElement("textarea", { id: "quizDescription" })
+            "Answers Per Question:"
+        ),
+        React.createElement("input", { id: "answersPerQuestion", type: "range", min: "2", max: "6" }),
+        React.createElement(
+            "label",
+            { id: "answersPerQuestionSliderLabel" },
+            "4"
         ),
         React.createElement(
             "label",
             null,
-            "Number of Questions:",
-            React.createElement("input", { id: "numQuestions", type: "range", min: "1", max: "50" }),
-            React.createElement(
-                "label",
-                { id: "questionSliderLabel" },
-                "1"
-            )
+            "Number of Possible Outcomes:"
         ),
+        React.createElement("input", { id: "numOutcomes", type: "range", min: "2", max: "15" }),
         React.createElement(
             "label",
-            null,
-            "Answers Per Question:",
-            React.createElement("input", { id: "answersPerQuestion", type: "range", min: "2", max: "6" }),
-            React.createElement(
-                "label",
-                { id: "answersPerQuestionSliderLabel" },
-                "4"
-            )
-        ),
-        React.createElement(
-            "label",
-            null,
-            "Number of Possible Outcomes:",
-            React.createElement("input", { id: "numOutcomes", type: "range", min: "2", max: "15" }),
-            React.createElement(
-                "label",
-                { id: "outcomeSliderLabel" },
-                "2"
-            )
+            { id: "outcomeSliderLabel" },
+            "2"
         ),
         React.createElement(
             "button",
             { id: "initialSubmitButton" },
             "Next"
-        )
+        ),
+        React.createElement("input", { type: "hidden", value: props.csrf, id: "_csrf" })
     );
 };
 
-var OutcomesWindow = function OutcomesWindow() {
+var OutcomesWindow = function OutcomesWindow(props) {
     var outcomeArray = [];
     for (var i = 0; i < numOutcomes; i++) {
         outcomeArray.push(i);
@@ -109,19 +153,9 @@ var OutcomesWindow = function OutcomesWindow() {
     var outcomeNodes = outcomeArray.map(function (num) {
         return React.createElement(
             "div",
-            { id: "outcome" + num },
-            React.createElement(
-                "label",
-                null,
-                "Outcome Name:",
-                React.createElement("input", { id: "outcomeName" + num })
-            ),
-            React.createElement(
-                "label",
-                null,
-                "Outcome Description:",
-                React.createElement("input", { id: "outcomeDescription" + num })
-            )
+            { id: "outcome" + num, className: "outcome" },
+            React.createElement("input", { id: "outcomeName" + num, placeholder: "Outcome " + num + " Name" }),
+            React.createElement("input", { id: "outcomeDescription" + num, placeholder: "Outcome " + num + " Description" })
         );
     });
 
@@ -130,18 +164,19 @@ var OutcomesWindow = function OutcomesWindow() {
         null,
         React.createElement(
             "div",
-            null,
+            { id: "outcomeWindow" },
             outcomeNodes
         ),
         React.createElement(
             "button",
             { id: "outcomeSubmitButton" },
             "Next"
-        )
+        ),
+        React.createElement("input", { type: "hidden", value: props.csrf, id: "_csrf" })
     );
 };
 
-var QuestionsWindow = function QuestionsWindow() {
+var QuestionsWindow = function QuestionsWindow(props) {
     var questionArray = [];
     for (var i = 0; i < numQuestions; i++) {
         questionArray.push(i);
@@ -186,14 +221,7 @@ var QuestionsWindow = function QuestionsWindow() {
         return React.createElement(
             "div",
             { "class": "answerContainer", id: "answerContainer" + num },
-            React.createElement(
-                "label",
-                null,
-                "Answer ",
-                num + 1,
-                ":",
-                React.createElement("textarea", { className: "answer" })
-            ),
+            React.createElement("textarea", { className: "answer", placeholder: "Answer" + (num + 1) }),
             React.createElement(
                 "div",
                 { className: "outcomeNodes" },
@@ -206,21 +234,11 @@ var QuestionsWindow = function QuestionsWindow() {
         return React.createElement(
             "div",
             { className: "questionContainer", id: "questionContainer" + num },
+            React.createElement("textarea", { className: "question", placeholder: "Question" }),
             React.createElement(
-                "label",
-                null,
-                "Question:",
-                React.createElement("textarea", { className: "question" })
-            ),
-            React.createElement(
-                "label",
-                null,
-                "Answers:",
-                React.createElement(
-                    "div",
-                    { className: "answerContainers" },
-                    answerNodes
-                )
+                "div",
+                { className: "answerContainers" },
+                answerNodes
             )
         );
     });
@@ -237,12 +255,13 @@ var QuestionsWindow = function QuestionsWindow() {
             "button",
             { id: "questionSubmitButton" },
             "Submit Quiz"
-        )
+        ),
+        React.createElement("input", { type: "hidden", value: props.csrf, id: "_csrf" })
     );
 };
 
-var createQuestionsWindow = function createQuestionsWindow() {
-    ReactDOM.render(React.createElement(QuestionsWindow, null), document.querySelector("#content"));
+var createQuestionsWindow = function createQuestionsWindow(csrf) {
+    ReactDOM.render(React.createElement(QuestionsWindow, { csrf: csrf }), document.querySelector("#content"));
 
     var questions = document.querySelector("#questions");
     for (var i = 0; i < numQuestions; i++) {
@@ -267,50 +286,15 @@ var createQuestionsWindow = function createQuestionsWindow() {
     }
 
     document.querySelector("#questionSubmitButton").addEventListener("click", function () {
-        getToken(handleQuizSubmission);
+        handleQuizSubmission();
     });
 };
 
-var handleQuizSubmission = function handleQuizSubmission(csrf) {
-    quiz.name = quizName;
-    quiz.description = quizDescription;
-    quiz.outcomes = outcomes;
-    quiz.questions = [];
-
-    var questions = document.querySelector("#questions");
-    for (var i = 0; i < numQuestions; i++) {
-        var newQuestion = {};
-        var questionContainer = questions.querySelector("#questionContainer" + i);
-        newQuestion.question = questionContainer.querySelector(".question").value;
-        var answers = [];
-        var answerContainers = questionContainer.querySelector(".answerContainers");
-        for (var j = 0; j < answersPerQuestion; j++) {
-            var answerContainer = answerContainers.querySelector("#answerContainer" + j);
-            var newAnswer = {};
-            newAnswer.answer = answerContainer.querySelector(".answer").value;
-            var _outcomes = answerContainer.querySelector(".outcomeNodes");
-            var weights = [];
-            for (var k = 0; k < numOutcomes; k++) {
-                var _outcomeContainer = _outcomes.querySelector("#outcomeContainer" + k);
-                var newWeight = {};
-                newWeight.outcome = _outcomeContainer.querySelector(".outcome").innerHTML;
-                newWeight.weight = _outcomeContainer.querySelector(".weight").value;
-                weights.push(newWeight);
-            }
-            newAnswer.weights = weights;
-            answers.push(newAnswer);
-        }
-        newQuestion.answers = answers;
-        quiz.questions.push(newQuestion);
-    }
-
-    console.log(quiz);
-};
-
-var createInitialWindow = function createInitialWindow() {
-    ReactDOM.render(React.createElement(InitialWindow, null), document.querySelector("#content"));
-    document.querySelector("#initialSubmitButton").addEventListener("click", handleInitialWindow);
-
+var createInitialWindow = function createInitialWindow(csrf) {
+    ReactDOM.render(React.createElement(InitialWindow, { csrf: csrf }), document.querySelector("#content"));
+    document.querySelector("#initialSubmitButton").addEventListener("click", function () {
+        handleInitialWindow();
+    });
     var numQuestionsSlider = document.querySelector("#numQuestions");
     numQuestionsSlider.value = 1;
     numQuestionsSlider.addEventListener("input", function (e) {
@@ -328,23 +312,25 @@ var createInitialWindow = function createInitialWindow() {
     });
 };
 
-var createOutcomesWindow = function createOutcomesWindow() {
-    ReactDOM.render(React.createElement(OutcomesWindow, null), document.querySelector("#content"));
-    document.querySelector("#outcomeSubmitButton").addEventListener("click", handleQuizOutcomes);
+var createOutcomesWindow = function createOutcomesWindow(csrf) {
+    ReactDOM.render(React.createElement(OutcomesWindow, { csrf: csrf }), document.querySelector("#content"));
+    document.querySelector("#outcomeSubmitButton").addEventListener("click", function () {
+        handleQuizOutcomes();
+    });
 };
 
-var setup = function setup() {
-    createInitialWindow();
+var setup = function setup(csrf) {
+    createInitialWindow(csrf);
 };
 
-var getToken = function getToken(callback) {
+var getToken = function getToken() {
     sendAjax('GET', '/getToken', null, function (result) {
-        callback(result.csrfToken);
+        setup(result.csrfToken);
     });
 };
 
 $(document).ready(function () {
-    setup();
+    getToken();
 });
 "use strict";
 

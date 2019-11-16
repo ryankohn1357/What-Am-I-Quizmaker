@@ -13,7 +13,7 @@
     "build": "npm run buildMainBundle && npm run buildQuizmakerBundle",
     "watchQuizmakerBundle": "babel --watch ./client/quizMaker ./client/helper --presets react --out-file ./hosted/quizMakerBundle.js",
     "watchMainBundle": "babel --watch ./client/main ./client/helper --presets react --out-file ./hosted/mainBundle.js",
-    "nodemon": "nodemon --watch ./server ./server/app.js",
+    "nodemon": "nodemon --watch ./server ./server/app.js ./hosted/style.css",
     "start": "node ./server/app.js",
     "pretest": "eslint ./server --fix",
     "test": "echo \"Tests complete\""
