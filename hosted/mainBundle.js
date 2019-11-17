@@ -8,7 +8,7 @@ var handleLogin = function handleLogin(e) {
         return false;
     }
 
-    sendAjax('POST', $("#loginForm").attr("action"), $("#loginForm").serialize(), redirect);
+    sendAjax('POST', $("#loginForm").attr("action"), $("#loginForm").serialize(), "json", redirect);
 
     return false;
 };
@@ -43,7 +43,8 @@ var LoginWindow = function LoginWindow(props) {
         React.createElement("input", { id: "user", type: "text", name: "username", placeholder: "Username" }),
         React.createElement("input", { id: "pass", type: "password", name: "pass", placeholder: "Password" }),
         React.createElement("input", { type: "hidden", name: "_csrf", value: props.csrf }),
-        React.createElement("input", { className: "formSubmit", type: "submit", value: "Sign in" })
+        React.createElement("input", { className: "formSubmit", type: "submit", value: "Log In" }),
+        React.createElement("p", { id: "error" })
     );
 };
 
@@ -60,7 +61,8 @@ var SignupWindow = function SignupWindow(props) {
         React.createElement("input", { id: "pass", type: "password", name: "pass", placeholder: "Password" }),
         React.createElement("input", { id: "pass2", type: "password", name: "pass2", placeholder: "Retype Password" }),
         React.createElement("input", { type: "hidden", name: "_csrf", value: props.csrf }),
-        React.createElement("input", { className: "formSubmit", type: "submit", value: "Sign up" })
+        React.createElement("input", { className: "formSubmit", type: "submit", value: "Sign Up" }),
+        React.createElement("p", { id: "error" })
     );
 };
 
@@ -94,20 +96,38 @@ var QuizList = function QuizList(props) {
                 " ",
                 quiz.description,
                 " "
-            )
+            ),
+            React.createElement("input", { hidden: true, className: "quizId", value: quiz._id })
         );
     });
 
     return React.createElement(
         "div",
         { className: "quizList" },
-        quizNodes
+        quizNodes,
+        React.createElement("p", { id: "error" })
     );
 };
 
 var loadQuizzesFromServer = function loadQuizzesFromServer() {
     sendAjax('GET', '/getQuizzes', null, function (data) {
         ReactDOM.render(React.createElement(QuizList, { quizzes: data.quizzes }), document.querySelector("#content"));
+
+        var quizzes = document.querySelectorAll(".quiz");
+
+        var _loop = function _loop(i) {
+            var quiz = quizzes[i];
+            var quizName = quiz.querySelector(".quizName").innerText;
+            var quizDescription = quiz.querySelector(".quizDescription").innerText;
+            quiz.querySelector(".quizName").addEventListener("click", function () {
+                var url = "/takeQuiz?name=" + quizName + "&description=" + quizDescription;
+                window.location = url;
+            });
+        };
+
+        for (var i = 0; i < quizzes.length; i++) {
+            _loop(i);
+        }
     });
 };
 
@@ -164,7 +184,10 @@ $(document).ready(function () {
 "use strict";
 
 var handleError = function handleError(message) {
-    console.log(message);
+    var error = document.querySelector("#error");
+    if (error) {
+        error.innerHTML = message;
+    }
 };
 
 var redirect = function redirect(response) {
@@ -180,8 +203,11 @@ var sendAjax = function sendAjax(type, action, data, success) {
         dataType: "json",
         success: success,
         error: function error(xhr, status, _error) {
-            var messageObj = JSON.parse(xhr.responseText);
-            handleError(messageObj.error);
+            if (xhr.responseJSON) {
+                handleError(xhr.responseJSON.error);
+            } else {
+                handleError(_error);
+            }
         }
     });
 };

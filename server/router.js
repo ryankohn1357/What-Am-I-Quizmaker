@@ -10,6 +10,7 @@ const router = (app) => {
   app.get('/makeQuiz', mid.requiresSecure, mid.requiresLogin, controllers.Quiz.makeQuizPage);
   app.post('/makeQuiz', mid.requiresLogin, controllers.Quiz.createQuiz);
   app.get('/getQuizzes', mid.requiresSecure, controllers.Quiz.getQuizzes);
+  app.get('/getQuiz', mid.requiresSecure, controllers.Quiz.getQuiz);
   app.get('/takeQuiz', mid.requiresSecure, controllers.Quiz.takeQuizPage);
   app.get('/', mid.requiresSecure, controllers.Account.mainPage);
 };

@@ -77,7 +77,8 @@ var handleQuizSubmission = function handleQuizSubmission() {
             for (var k = 0; k < numOutcomes; k++) {
                 var outcomeContainer = _outcomes.querySelector("#outcomeContainer" + k);
                 var newWeight = {};
-                newWeight.outcome = outcomeContainer.querySelector(".outcome").innerHTML;
+                var outcomeLabel = outcomeContainer.querySelector(".outcomeWeightsLabel").innerHTML;
+                newWeight.outcome = outcomeLabel.split(" ")[0];
                 newWeight.weight = outcomeContainer.querySelector(".weight").value;
                 weights.push(newWeight);
             }
@@ -101,45 +102,70 @@ var InitialWindow = function InitialWindow(props) {
         "div",
         { id: "initialQuizWindow" },
         React.createElement("input", { id: "quizName", placeholder: "Quiz Name" }),
-        React.createElement("textarea", { id: "quizDescription", placeholder: "Quiz Description" }),
+        React.createElement("textarea", { id: "quizDescription", placeholder: "Quiz Description", rows: "8", cols: "40" }),
         React.createElement(
-            "label",
-            null,
-            "Number of Questions:"
-        ),
-        React.createElement("input", { id: "numQuestions", type: "range", min: "1", max: "50" }),
-        React.createElement(
-            "label",
-            { id: "questionSliderLabel" },
-            "1"
-        ),
-        React.createElement(
-            "label",
-            null,
-            "Answers Per Question:"
-        ),
-        React.createElement("input", { id: "answersPerQuestion", type: "range", min: "2", max: "6" }),
-        React.createElement(
-            "label",
-            { id: "answersPerQuestionSliderLabel" },
-            "4"
+            "div",
+            { className: "sliderPlusLabel" },
+            React.createElement(
+                "label",
+                null,
+                "Number of Questions:"
+            ),
+            React.createElement(
+                "div",
+                { className: "sliderContainer" },
+                React.createElement("input", { id: "numQuestions", type: "range", min: "1", max: "50" }),
+                React.createElement(
+                    "label",
+                    { id: "questionSliderLabel" },
+                    "5"
+                )
+            )
         ),
         React.createElement(
-            "label",
-            null,
-            "Number of Possible Outcomes:"
+            "div",
+            { className: "sliderPlusLabel" },
+            React.createElement(
+                "label",
+                null,
+                "Answers Per Question:"
+            ),
+            React.createElement(
+                "div",
+                { className: "sliderContainer" },
+                React.createElement("input", { id: "answersPerQuestion", type: "range", min: "2", max: "6" }),
+                React.createElement(
+                    "label",
+                    { id: "answersPerQuestionSliderLabel" },
+                    "4"
+                )
+            )
         ),
-        React.createElement("input", { id: "numOutcomes", type: "range", min: "2", max: "15" }),
         React.createElement(
-            "label",
-            { id: "outcomeSliderLabel" },
-            "2"
+            "div",
+            { className: "sliderPlusLabel" },
+            React.createElement(
+                "label",
+                null,
+                "Number of Possible Outcomes:"
+            ),
+            React.createElement(
+                "div",
+                { className: "sliderContainer" },
+                React.createElement("input", { id: "numOutcomes", type: "range", min: "2", max: "15" }),
+                React.createElement(
+                    "label",
+                    { id: "outcomeSliderLabel" },
+                    "2"
+                )
+            )
         ),
         React.createElement(
             "button",
-            { id: "initialSubmitButton" },
+            { id: "initialSubmitButton", className: "formSubmit" },
             "Next"
         ),
+        React.createElement("p", { id: "error" }),
         React.createElement("input", { type: "hidden", value: props.csrf, id: "_csrf" })
     );
 };
@@ -154,8 +180,10 @@ var OutcomesWindow = function OutcomesWindow(props) {
         return React.createElement(
             "div",
             { id: "outcome" + num, className: "outcome" },
-            React.createElement("input", { id: "outcomeName" + num, placeholder: "Outcome " + num + " Name" }),
-            React.createElement("input", { id: "outcomeDescription" + num, placeholder: "Outcome " + num + " Description" })
+            React.createElement("input", { id: "outcomeName" + num, placeholder: "Outcome " + (num + 1) + " Name" }),
+            React.createElement("textarea", { id: "outcomeDescription" + num,
+                placeholder: "Outcome " + (num + 1) + " Description",
+                rows: "8", cols: "40" })
         );
     });
 
@@ -169,9 +197,10 @@ var OutcomesWindow = function OutcomesWindow(props) {
         ),
         React.createElement(
             "button",
-            { id: "outcomeSubmitButton" },
+            { id: "outcomeSubmitButton", className: "formSubmit" },
             "Next"
         ),
+        React.createElement("p", { id: "error" }),
         React.createElement("input", { type: "hidden", value: props.csrf, id: "_csrf" })
     );
 };
@@ -198,14 +227,13 @@ var QuestionsWindow = function QuestionsWindow(props) {
                 "div",
                 null,
                 React.createElement(
-                    "h3",
-                    { className: "outcome" },
-                    outcomes[num].name
+                    "label",
+                    { className: "outcomeWeightsLabel" },
+                    outcomes[num].name + " Weight"
                 ),
                 React.createElement(
-                    "label",
-                    null,
-                    "Weight:",
+                    "div",
+                    { className: "sliderContainer" },
                     React.createElement("input", { className: "weight", type: "range", min: "0", max: "100" }),
                     React.createElement(
                         "label",
@@ -220,8 +248,8 @@ var QuestionsWindow = function QuestionsWindow(props) {
     var answerNodes = answerArray.map(function (num) {
         return React.createElement(
             "div",
-            { "class": "answerContainer", id: "answerContainer" + num },
-            React.createElement("textarea", { className: "answer", placeholder: "Answer" + (num + 1) }),
+            { className: "answerContainer", id: "answerContainer" + num },
+            React.createElement("textarea", { className: "answer", placeholder: "Answer " + (num + 1), rows: "4", cols: "40" }),
             React.createElement(
                 "div",
                 { className: "outcomeNodes" },
@@ -234,7 +262,7 @@ var QuestionsWindow = function QuestionsWindow(props) {
         return React.createElement(
             "div",
             { className: "questionContainer", id: "questionContainer" + num },
-            React.createElement("textarea", { className: "question", placeholder: "Question" }),
+            React.createElement("textarea", { className: "question", placeholder: "Question " + (num + 1), rows: "6", cols: "50" }),
             React.createElement(
                 "div",
                 { className: "answerContainers" },
@@ -253,9 +281,10 @@ var QuestionsWindow = function QuestionsWindow(props) {
         ),
         React.createElement(
             "button",
-            { id: "questionSubmitButton" },
+            { id: "questionSubmitButton", className: "formSubmit" },
             "Submit Quiz"
         ),
+        React.createElement("p", { id: "error" }),
         React.createElement("input", { type: "hidden", value: props.csrf, id: "_csrf" })
     );
 };
@@ -296,7 +325,7 @@ var createInitialWindow = function createInitialWindow(csrf) {
         handleInitialWindow();
     });
     var numQuestionsSlider = document.querySelector("#numQuestions");
-    numQuestionsSlider.value = 1;
+    numQuestionsSlider.value = 5;
     numQuestionsSlider.addEventListener("input", function (e) {
         document.querySelector("#questionSliderLabel").innerHTML = e.target.value;
     });
@@ -335,7 +364,10 @@ $(document).ready(function () {
 "use strict";
 
 var handleError = function handleError(message) {
-    console.log(message);
+    var error = document.querySelector("#error");
+    if (error) {
+        error.innerHTML = message;
+    }
 };
 
 var redirect = function redirect(response) {
@@ -351,8 +383,11 @@ var sendAjax = function sendAjax(type, action, data, success) {
         dataType: "json",
         success: success,
         error: function error(xhr, status, _error) {
-            var messageObj = JSON.parse(xhr.responseText);
-            handleError(messageObj.error);
+            if (xhr.responseJSON) {
+                handleError(xhr.responseJSON.error);
+            } else {
+                handleError(_error);
+            }
         }
     });
 };

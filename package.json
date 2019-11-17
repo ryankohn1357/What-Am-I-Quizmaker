@@ -10,8 +10,10 @@
   "scripts": {
     "buildMainBundle": "babel ./client/main ./client/helper --presets react --out-file ./hosted/mainBundle.js",
     "buildQuizmakerBundle": "babel ./client/quizMaker ./client/helper --presets react --out-file ./hosted/quizMakerBundle.js",
-    "build": "npm run buildMainBundle && npm run buildQuizmakerBundle",
+    "buildQuiztakerBundle": "babel ./client/quizTaker ./client/helper --presets react --out-file ./hosted/quizTakerBundle.js",
+    "build": "npm run buildMainBundle && npm run buildQuizmakerBundle && npm run buildQuiztakerBundle",
     "watchQuizmakerBundle": "babel --watch ./client/quizMaker ./client/helper --presets react --out-file ./hosted/quizMakerBundle.js",
+    "watchQuiztakerBundle": "babel --watch ./client/quizTaker ./client/helper --presets react --out-file ./hosted/quizTakerBundle.js",
     "watchMainBundle": "babel --watch ./client/main ./client/helper --presets react --out-file ./hosted/mainBundle.js",
     "nodemon": "nodemon --watch ./server ./server/app.js ./hosted/style.css",
     "start": "node ./server/app.js",

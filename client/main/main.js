@@ -1,12 +1,12 @@
 const handleLogin = (e) => {
     e.preventDefault();
 
-    if($("#user").val() == '' || $("#pass").val() == '') {
+    if ($("#user").val() == '' || $("#pass").val() == '') {
         handleError("Username or password is empty");
         return false;
     }
 
-    sendAjax('POST', $("#loginForm").attr("action"), $("#loginForm").serialize(), redirect);
+    sendAjax('POST', $("#loginForm").attr("action"), $("#loginForm").serialize(), "json", redirect);
 
     return false;
 };
@@ -14,12 +14,12 @@ const handleLogin = (e) => {
 const handleSignup = (e) => {
     e.preventDefault();
 
-    if($("#user").val() == '' || $("#pass").val() == '' || $("#pass2").val() == '') {
+    if ($("#user").val() == '' || $("#pass").val() == '' || $("#pass2").val() == '') {
         handleError("All fields are required");
         return false;
     }
 
-    if($("#pass").val() !== $("#pass2").val()) {
+    if ($("#pass").val() !== $("#pass2").val()) {
         handleError("Passwords do not match");
         return false;
     }
@@ -32,15 +32,16 @@ const handleSignup = (e) => {
 const LoginWindow = (props) => {
     return (
         <form id="loginForm" name="loginForm"
-              onSubmit={handleLogin}
-              action="/login"
-              method="POST"
-              className="mainForm"
+            onSubmit={handleLogin}
+            action="/login"
+            method="POST"
+            className="mainForm"
         >
             <input id="user" type="text" name="username" placeholder="Username" />
             <input id="pass" type="password" name="pass" placeholder="Password" />
             <input type="hidden" name="_csrf" value={props.csrf} />
-            <input className="formSubmit" type="submit" value="Sign in" />
+            <input className="formSubmit" type="submit" value="Log In" />
+            <p id="error"></p>
         </form>
     );
 };
@@ -48,34 +49,36 @@ const LoginWindow = (props) => {
 const SignupWindow = (props) => {
     return (
         <form id="signupForm" name="signupForm"
-              onSubmit={handleSignup}
-              action="/signup"
-              method="POST"
-              className="mainForm"
+            onSubmit={handleSignup}
+            action="/signup"
+            method="POST"
+            className="mainForm"
         >
             <input id="user" type="text" name="username" placeholder="Username" />
             <input id="pass" type="password" name="pass" placeholder="Password" />
             <input id="pass2" type="password" name="pass2" placeholder="Retype Password" />
             <input type="hidden" name="_csrf" value={props.csrf} />
-            <input className="formSubmit" type="submit" value="Sign up" />
-        </form>
+            <input className="formSubmit" type="submit" value="Sign Up" />
+            <p id="error"></p>
+        </form>   
     );
 };
 
-const QuizList = function(props) {
-    if(props.quizzes.length === 0) {
+const QuizList = function (props) {
+    if (props.quizzes.length === 0) {
         return (
-            <div className ="quizList">
-                <h3 className = "emptyQuizzes">No quizzes yet</h3>
+            <div className="quizList">
+                <h3 className="emptyQuizzes">No quizzes yet</h3>
             </div>
         );
     }
 
-    const quizNodes = props.quizzes.map(function(quiz) {
+    const quizNodes = props.quizzes.map(function (quiz) {
         return (
-            <div key={quiz._id} className = "quiz">
+            <div key={quiz._id} className="quiz">
                 <h3 className="quizName"> {quiz.name} </h3>
-                <h3 className = "quizDescription"> {quiz.description} </h3>
+                <h3 className="quizDescription"> {quiz.description} </h3>
+                <input hidden className="quizId" value={quiz._id}></input>
             </div>
         );
     });
@@ -83,6 +86,7 @@ const QuizList = function(props) {
     return (
         <div className="quizList">
             {quizNodes}
+            <p id="error"></p>
         </div>
     );
 };
@@ -92,6 +96,17 @@ const loadQuizzesFromServer = () => {
         ReactDOM.render(
             <QuizList quizzes={data.quizzes} />, document.querySelector("#content")
         );
+
+        let quizzes = document.querySelectorAll(".quiz");
+        for(let i = 0; i < quizzes.length; i++) {
+            let quiz = quizzes[i];
+            let quizName = quiz.querySelector(".quizName").innerText;
+            let quizDescription = quiz.querySelector(".quizDescription").innerText;
+            quiz.querySelector(".quizName").addEventListener("click", () => {
+                let url = "/takeQuiz?name=" + quizName + "&description=" + quizDescription;
+                window.location = url; 
+            });
+        }
     });
 };
 
@@ -112,7 +127,7 @@ const createSignupWindow = (csrf) => {
 const setup = (csrf) => {
     const linkOptions = document.querySelector("#linkOptions");
     const loggedIn = document.querySelector("#isLoggedIn").innerHTML == "true";
-    if(!loggedIn) {
+    if (!loggedIn) {
         linkOptions.innerHTML = "<li class='navlink'><a href='/login' id='loginButton'>Log In</a></li>";
         linkOptions.innerHTML += "<li class='navlink'><a href='/signup' id='signupButton'>Sign Up</a></li>"
     }
@@ -124,7 +139,7 @@ const setup = (csrf) => {
     const loginButton = document.querySelector("#loginButton");
     const signupButton = document.querySelector("#signupButton");
 
-    if(signupButton) {
+    if (signupButton) {
         signupButton.addEventListener("click", (e) => {
             e.preventDefault();
             createSignupWindow(csrf);
@@ -132,7 +147,7 @@ const setup = (csrf) => {
         });
     }
 
-    if(loginButton) {
+    if (loginButton) {
         loginButton.addEventListener("click", (e) => {
             e.preventDefault();
             createLoginWindow(csrf);
@@ -149,6 +164,6 @@ const getToken = () => {
     });
 };
 
-$(document).ready(function() {
+$(document).ready(function () {
     getToken();
 });

@@ -65,11 +65,22 @@ QuizSchema.statics.findByOwner = (ownerId, callback) => {
     owner: convertId(ownerId),
   };
 
-  return QuizModel.find(search).select('name description questions').exec(callback);
+  return QuizModel.find(search).select('name description questions outcomes').exec(callback);
 };
 
 QuizSchema.statics.findById = (id, callback) => {
-  QuizModel.findById(id).select('name description questions').exec(callback);
+  const search = {
+    _id: id, 
+  };
+  return QuizModel.find(search).select('name description questions outcomes').exec(callback);
+};
+
+QuizSchema.statics.findByNameAndDescription = (name, description, callback) => {
+  const search = {
+    name: name,
+    description: description, 
+  };
+  return QuizModel.find(search).select('name description questions outcomes').exec(callback);
 };
 
 QuizSchema.statics.getAllQuizzes = (callback) => {

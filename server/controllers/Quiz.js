@@ -1,4 +1,7 @@
 const models = require('../models');
+const query = require('querystring');
+const url = require('url');
+
 const Quiz = models.Quiz;
 
 const createQuiz = (req, res) => {
@@ -31,13 +34,29 @@ const createQuiz = (req, res) => {
 const makeQuizPage = (req, res) => res.render('makeQuiz', { csrfToken: req.csrfToken() });
 
 const takeQuizPage = (req, res) => {
-  Quiz.QuizModel.findById(req.quizId, (err, doc) => {
+  const parsedUrl = url.parse(req.url);
+  const params = query.parse(parsedUrl.query);
+  if(!params.name || !params.description) {
+    return res.status(400).json({ error: "Missing name or description"});
+  }
+
+  return res.render('takeQuiz', { csrfToken: req.csrfToken(), name: params.name, description: params.description });
+};
+
+const getQuiz = (req, res) => {
+  const parsedUrl = url.parse(req.url);
+  const params = query.parse(parsedUrl.query);
+  if(!params.name || !params.description) {
+    return res.status(400).json({ error: "Missing name or description"});
+  }
+
+  Quiz.QuizModel.findByNameAndDescription(params.name, params.description, (err, doc) => {
     if (err) {
       console.log(err);
       return res.status(400).json({ error: 'An error occurred' });
     }
 
-    return res.render('takeQuiz', { csrfToken: req.csrfToken(), quiz: doc });
+    return res.status(200).json({ quiz: doc[0] });
   });
 };
 
@@ -54,3 +73,4 @@ module.exports.createQuiz = createQuiz;
 module.exports.makeQuizPage = makeQuizPage;
 module.exports.takeQuizPage = takeQuizPage;
 module.exports.getQuizzes = getQuizzes;
+module.exports.getQuiz = getQuiz;

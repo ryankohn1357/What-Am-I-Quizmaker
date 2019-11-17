@@ -1,5 +1,8 @@
 const handleError = (message) => {
-    console.log(message);
+    let error = document.querySelector("#error");
+    if(error) {
+        error.innerHTML = message;
+    }
 };
 
 const redirect = (response) => {
@@ -15,8 +18,12 @@ const sendAjax = (type, action, data, success) => {
         dataType: "json",
         success: success,
         error: function(xhr, status, error) {
-            var messageObj = JSON.parse(xhr.responseText);
-            handleError(messageObj.error);
+            if(xhr.responseJSON) {
+                handleError(xhr.responseJSON.error);
+            }
+            else {
+                handleError(error);
+            }
         }
     });
 };

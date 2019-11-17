@@ -48,9 +48,10 @@ nav {
 }
 
 #content {
-    width: 40%;
-    padding: 20px;
+    min-width: 350px;
+    padding-top: 20px;
     padding-left: 30px;
+    padding-bottom: 20px;
     padding-right: 30px;
     background-color: beige;
     color: black;
@@ -63,6 +64,10 @@ nav {
     top: 300px;
 }
 
+textarea, input {
+    padding: 8px;
+}
+
 .quizList {
     width: 100%;
     margin: 10px;
@@ -70,7 +75,21 @@ nav {
 
 .quiz {
     padding: 5px;
-    padding-top: 1px;
+    margin: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.quiz:hover {
+    background-color: darkgreen;
+    color: beige;
+}
+
+.emptyQuizzes {
+    font-weight: bold;
+    font-size: 20pt;
+    margin: auto;
 }
 
 .quizName {
@@ -98,16 +117,113 @@ form {
 
 .formSubmit {
     position: absolute;
-    bottom: 0;
+    bottom: 10px;
+    padding: 5px;
+    border-radius: 4px;
+    background-color: white;
+    font-weight: bold;
 }
 
-#user, #pass, #pass2 {
-    padding: 4px;
+.formSubmit:hover {
+    background-color: darkgreen;
+    color: beige;
+    border: 1px solid black;
 }
 
 #initialQuizWindow, #outcomeWindow, .outcome {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+}
+
+#error {
+    color: red;  
+    padding-bottom: 10px;
+}
+
+#quizName, #quizDescription {
+    border: 1px solid darkgreen;
+    margin-bottom: 8px;
+    padding: 6px;
+}
+
+.sliderPlusLabel {
+    padding: 5px;
+    border: 1px solid darkgreen;
+    margin-bottom: 8px;
+}
+
+.sliderPlusLabel label {
+    font-weight: bold;
+}
+
+.sliderContainer {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.sliderContainer label {
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 100px;
+    background-color: rgb(94, 223, 94);
+    font-weight: bold;
+}
+
+.outcome {
+    padding-bottom: 15px;
+    padding-top: 15px;
+}
+
+.outcome input {
+    margin-bottom: 10px;
+}
+
+#outcomeWindow {
+    background-color: darkgreen;
+    padding: 20px;
+}
+
+.questionContainer {
+    padding: 10px;
+    padding-bottom: 35px; 
+    background-color: darkgreen;
+    border-bottom: 1px dashed lightgreen;
+}
+
+.question {
+    margin-bottom: 25px;
+    margin-top: 25px;
+}
+
+.answerContainer {
+    background-color: beige;
+    padding: 15px;
+    border-bottom: 5px solid darkgreen;
+}
+
+.answer {
+    margin-bottom: 10px;
+}
+
+#description {
+    font-style: italic;
+    color: lawngreen;
+}
+
+#resultWindow {
+    display: flex;
+    flex-direction: column;
     align-items: center;
 }
 
+#resultWindow h1 {
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+#resultWindow p {
+    font-style: italic;
+    margin-bottom: 40px;
+}
