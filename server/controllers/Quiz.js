@@ -36,21 +36,22 @@ const makeQuizPage = (req, res) => res.render('makeQuiz', { csrfToken: req.csrfT
 const takeQuizPage = (req, res) => {
   const parsedUrl = url.parse(req.url);
   const params = query.parse(parsedUrl.query);
-  if(!params.name || !params.description) {
-    return res.status(400).json({ error: "Missing name or description"});
+  if (!params.name || !params.description) {
+    return res.status(400).json({ error: 'Missing name or description' });
   }
 
-  return res.render('takeQuiz', { csrfToken: req.csrfToken(), name: params.name, description: params.description });
+  return res.render('takeQuiz', { csrfToken: req.csrfToken(), name: params.name,
+    description: params.description });
 };
 
 const getQuiz = (req, res) => {
   const parsedUrl = url.parse(req.url);
   const params = query.parse(parsedUrl.query);
-  if(!params.name || !params.description) {
-    return res.status(400).json({ error: "Missing name or description"});
+  if (!params.name || !params.description) {
+    return res.status(400).json({ error: 'Missing name or description' });
   }
 
-  Quiz.QuizModel.findByNameAndDescription(params.name, params.description, (err, doc) => {
+  return Quiz.QuizModel.findByNameAndDescription(params.name, params.description, (err, doc) => {
     if (err) {
       console.log(err);
       return res.status(400).json({ error: 'An error occurred' });

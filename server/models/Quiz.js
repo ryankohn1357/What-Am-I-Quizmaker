@@ -70,15 +70,15 @@ QuizSchema.statics.findByOwner = (ownerId, callback) => {
 
 QuizSchema.statics.findById = (id, callback) => {
   const search = {
-    _id: id, 
+    _id: id,
   };
   return QuizModel.find(search).select('name description questions outcomes').exec(callback);
 };
 
 QuizSchema.statics.findByNameAndDescription = (name, description, callback) => {
   const search = {
-    name: name,
-    description: description, 
+    name,
+    description,
   };
   return QuizModel.find(search).select('name description questions outcomes').exec(callback);
 };
