@@ -1,3 +1,4 @@
+// get information from login form and send a login request to the server
 const handleLogin = (e) => {
     e.preventDefault();
 
@@ -6,11 +7,12 @@ const handleLogin = (e) => {
         return false;
     }
 
-    sendAjax('POST', $("#loginForm").attr("action"), $("#loginForm").serialize(), "json", redirect);
+    sendAjax('POST', $("#loginForm").attr("action"), $("#loginForm").serialize(), redirect);
 
     return false;
 };
 
+// get information from signup form and send a signup request to the server
 const handleSignup = (e) => {
     e.preventDefault();
 
@@ -29,6 +31,23 @@ const handleSignup = (e) => {
     return false;
 };
 
+// get information from password change form and send a change password request to the server
+const handleChangePassword = (e) => {
+    e.preventDefault();
+
+    if ($("#oldPassword").val() == '' || $("#newPassword").val() == '') {
+        handleError("All fields are required");
+        return false;
+    }
+
+    sendAjax('POST', $("#changePasswordForm").attr("action"), $("#changePasswordForm").serialize(), () => {
+        window.location = "/logout";
+    });
+
+    return false;
+};
+
+// react element for logging in
 const LoginWindow = (props) => {
     return (
         <form id="loginForm" name="loginForm"
@@ -46,6 +65,7 @@ const LoginWindow = (props) => {
     );
 };
 
+// react element for signing up
 const SignupWindow = (props) => {
     return (
         <form id="signupForm" name="signupForm"
@@ -60,10 +80,30 @@ const SignupWindow = (props) => {
             <input type="hidden" name="_csrf" value={props.csrf} />
             <input className="formSubmit" type="submit" value="Sign Up" />
             <p id="error"></p>
-        </form>   
+        </form>
     );
 };
 
+// react element for seeing account information and making changes
+// currently only is able to change passwords
+const MyAccountWindow = (props) => {
+    return (
+        <form id="changePasswordForm" name="changePasswordForm"
+            onSubmit={handleChangePassword}
+            action="/changePassword"
+            method="POST"
+            className="mainForm"
+        >
+            <input id="oldPassword" type="password" name="oldPassword" placeholder="Old Password" />
+            <input id="newPassword" type="password" name="newPassword" placeholder="New Password" />
+            <input type="hidden" name="_csrf" value={props.csrf} />
+            <input className="formSubmit" type="submit" value="Change Password" />
+            <p id="error"></p>
+        </form>
+    );
+};
+
+// react element to display a list of all the quizzes that have been made
 const QuizList = function (props) {
     if (props.quizzes.length === 0) {
         return (
@@ -91,25 +131,29 @@ const QuizList = function (props) {
     );
 };
 
+// get all the quizzes that have been made to the server and 
+// create QuizList react element to display them
 const loadQuizzesFromServer = () => {
     sendAjax('GET', '/getQuizzes', null, (data) => {
         ReactDOM.render(
             <QuizList quizzes={data.quizzes} />, document.querySelector("#content")
         );
 
+        // setup event listeners to let users take a quiz when they click on it
         let quizzes = document.querySelectorAll(".quiz");
-        for(let i = 0; i < quizzes.length; i++) {
+        for (let i = 0; i < quizzes.length; i++) {
             let quiz = quizzes[i];
             let quizName = quiz.querySelector(".quizName").innerText;
             let quizDescription = quiz.querySelector(".quizDescription").innerText;
-            quiz.querySelector(".quizName").addEventListener("click", () => {
+            quiz.addEventListener("click", () => {
                 let url = "/takeQuiz?name=" + quizName + "&description=" + quizDescription;
-                window.location = url; 
+                window.location = url;
             });
         }
     });
 };
 
+// render login window to content
 const createLoginWindow = (csrf) => {
     ReactDOM.render(
         <LoginWindow csrf={csrf} />,
@@ -117,6 +161,7 @@ const createLoginWindow = (csrf) => {
     );
 };
 
+// render signup window to content
 const createSignupWindow = (csrf) => {
     ReactDOM.render(
         <SignupWindow csrf={csrf} />,
@@ -124,21 +169,31 @@ const createSignupWindow = (csrf) => {
     );
 };
 
+// render account window to content
+const createMyAccountWindow = (csrf) => {
+    ReactDOM.render(
+        <MyAccountWindow csrf={csrf} />,
+        document.querySelector("#content")
+    );
+};
+
 const setup = (csrf) => {
+    // setup nav bar based on whether the user is logged in or not
     const linkOptions = document.querySelector("#linkOptions");
     const loggedIn = document.querySelector("#isLoggedIn").innerHTML == "true";
     if (!loggedIn) {
-        linkOptions.innerHTML = "<li class='navlink'><a href='/login' id='loginButton'>Log In</a></li>";
-        linkOptions.innerHTML += "<li class='navlink'><a href='/signup' id='signupButton'>Sign Up</a></li>"
+        linkOptions.innerHTML = "<li class='navlink'><a id='loginButton'>Log In</a></li>";
+        linkOptions.innerHTML += "<li class='navlink'><a id='signupButton'>Sign Up</a></li>"
     }
     else {
         linkOptions.innerHTML = "<li class='navlink'><a href='/logout' id='logoutButton'>Log Out</a></li>";
         linkOptions.innerHTML += "<li class='navlink'><a href='/makeQuiz' id='makeQuizButton'>Make Quiz</a></li>";
+        linkOptions.innerHTML += "<li class='navlink'><a id='myAccountButton'>Change Password</a></li>";
     }
 
     const loginButton = document.querySelector("#loginButton");
     const signupButton = document.querySelector("#signupButton");
-
+    const myAccountButton = document.querySelector("#myAccountButton");
     if (signupButton) {
         signupButton.addEventListener("click", (e) => {
             e.preventDefault();
@@ -146,7 +201,6 @@ const setup = (csrf) => {
             return false;
         });
     }
-
     if (loginButton) {
         loginButton.addEventListener("click", (e) => {
             e.preventDefault();
@@ -154,10 +208,18 @@ const setup = (csrf) => {
             return false;
         });
     }
+    if (myAccountButton) {
+        myAccountButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            createMyAccountWindow(csrf);
+            return false;
+        });
+    }
 
     loadQuizzesFromServer(); // default view
 };
 
+// get csrf token from server
 const getToken = () => {
     sendAjax('GET', '/getToken', null, (result) => {
         setup(result.csrfToken);

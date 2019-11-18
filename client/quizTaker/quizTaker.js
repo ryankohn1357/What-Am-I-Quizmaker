@@ -1,7 +1,12 @@
 let quiz = {};
 let currentQuestion = 0;
+
+// When each question is answered, store the answer's weights
+// for each outcome in outcome progress. At the end of the quiz,
+// whatever outcome has the heighest weight is the result.
 let outcomeProgress = {};
 
+// react element for a quiz question
 const QuestionWindow = (props) => {
     const answerNodes = props.answers.map(function (answerObj) {
         return (
@@ -20,6 +25,7 @@ const QuestionWindow = (props) => {
     );
 };
 
+// react element for displaying results of quiz
 const ResultWindow = (props) => {
     return (
         <div id="resultWindow">
@@ -30,6 +36,7 @@ const ResultWindow = (props) => {
     );
 };
 
+// render question window to screen and setup events
 const createQuestionWindow = () => {
     let questionObj = quiz.questions[currentQuestion];
     let answersObj = questionObj.answers;
@@ -41,6 +48,7 @@ const createQuestionWindow = () => {
     setupQuestionWindowEvents();
 };
 
+// setup events for clicking on the answer to a question
 const setupQuestionWindowEvents = () => {
     let questionObj = quiz.questions[currentQuestion];
     let answersObj = questionObj.answers;
@@ -48,6 +56,8 @@ const setupQuestionWindowEvents = () => {
     for (let i = 0; i < answerOptions.length; i++) {
         let answer = answerOptions[i].innerHTML;
         answerOptions[i].onclick = () => {
+            // increment progress towards different outcomes based on
+            // the weights of the chosen answer
             for (let j = 0; j < answersObj.length; j++) {
                 let answerObj = answersObj[j];
                 if (answerObj.answer == answer) {
@@ -58,7 +68,8 @@ const setupQuestionWindowEvents = () => {
                     }
                 }
             }
-
+            // render next question or results, depending on where the
+            // user is in the quiz
             if(currentQuestion == quiz.questions.length - 1) {
                 currentQuestion = 0;
                 createResultWindow();
@@ -71,16 +82,19 @@ const setupQuestionWindowEvents = () => {
     }
 }
 
+// determine result and render results window to content
 const createResultWindow = () => {
+    // find which outcome had the highest weight
     let maxWeight = 0;
     let quizResult = "";
     let outcomeDescription = "";
     for(let outcome in outcomeProgress) {
-        if(outcomeProgress[outcome] > maxWeight) {
+        if(outcomeProgress[outcome] >= maxWeight) {
             quizResult = outcome;
             maxWeight = outcomeProgress[outcome];
         }
     }
+    // find the description for the result
     for (let i = 0; i < quiz.outcomes.length; i++) {
         let outcomeObj = quiz.outcomes[i];
         if(outcomeObj.name == quizResult) {
@@ -88,18 +102,18 @@ const createResultWindow = () => {
             break;
         }
     }
-
-    console.log(quizResult);
     ReactDOM.render(
         <ResultWindow result={quizResult} description={outcomeDescription} />,
         document.querySelector("#content")
     );
 
+    // setup event for return button
     document.querySelector("#returnButton").addEventListener("click", () => {
         window.location = "/";
     })
 };
 
+// get the quiz with the given name and description from the server
 const loadQuizFromServer = () => {
     let quizName = document.querySelector("#title").innerHTML;
     let quizDescription = document.querySelector("#description").innerHTML;

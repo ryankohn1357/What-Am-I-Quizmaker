@@ -2,15 +2,18 @@ const models = require('../models');
 
 const Account = models.Account;
 
+// render the main page view
 const mainPage = (req, res) => {
   res.render('main', { csrfToken: req.csrfToken(), loggedIn: req.session.account != null });
 };
 
+// destroy the current session and go to the main page
 const logout = (req, res) => {
   req.session.destroy();
   res.redirect('/');
 };
 
+// login to the account with the given username and password
 const login = (request, response) => {
   const req = request;
   const res = response;
@@ -34,6 +37,7 @@ const login = (request, response) => {
   });
 };
 
+// create a new account
 const signup = (request, response) => {
   const req = request;
   const res = response;
@@ -79,6 +83,47 @@ const signup = (request, response) => {
   });
 };
 
+// change the password for an existing account
+const changePassword = (request, response) => {
+  const req = request;
+  const res = response;
+
+  req.body.oldPassword = `${req.body.oldPassword}`;
+  req.body.newPassword = `${req.body.newPassword}`;
+
+  if (!req.body.oldPassword || !req.body.newPassword) {
+    return res.status(400).json({ error: 'All fields are requred' });
+  }
+
+  const username = req.session.account.username;
+
+  // determine if the account with the given username/password exists
+  return Account.AccountModel.authenticate(username, req.body.oldPassword, (err, account) => {
+    // if it doesn't exist, return error message
+    if (err || !account) {
+      return res.status(401).json({ error: 'Wrong password' });
+    }
+
+    return Account.AccountModel.generateHash(req.body.newPassword, (salt, hash) => {
+      const updatedAccount = account;
+      updatedAccount.salt = salt;
+      updatedAccount.password = hash;
+
+      const savePromise = updatedAccount.save();
+
+      savePromise.then(() => {
+        req.session.account = Account.AccountModel.toAPI(updatedAccount);
+        return res.status(204).json({ message: 'Password changed successfully' });
+      });
+
+      savePromise.catch((saveErr) => {
+        console.log(saveErr);
+        return res.status(400).json({ error: 'An error occurred' });
+      });
+    });
+  });
+};
+
 const getToken = (request, response) => {
   const req = request;
   const res = response;
@@ -95,3 +140,4 @@ module.exports.login = login;
 module.exports.logout = logout;
 module.exports.signup = signup;
 module.exports.getToken = getToken;
+module.exports.changePassword = changePassword;

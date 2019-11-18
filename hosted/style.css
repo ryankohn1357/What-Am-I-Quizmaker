@@ -14,6 +14,10 @@ body {
     color: lawngreen;
     box-shadow: 0px 0px 50px lawngreen;
     border-radius: 100px;
+    word-wrap: break-word;
+    max-width: 60%;
+    font-family: 'Kalam', cursive;
+    font-size: 32pt;
 }
 
 nav {
@@ -22,7 +26,7 @@ nav {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    padding-top: 5%;
+    padding-top: 40px;
     padding-bottom: 20px;
 }
 
@@ -47,23 +51,6 @@ nav {
     color: black;
 }
 
-#content {
-    min-width: 350px;
-    padding-top: 20px;
-    padding-left: 30px;
-    padding-bottom: 20px;
-    padding-right: 30px;
-    background-color: beige;
-    color: black;
-    box-shadow: 0px 0px 10px lawngreen;
-    border-radius: 5px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: absolute;
-    top: 300px;
-}
-
 textarea, input {
     padding: 8px;
 }
@@ -78,7 +65,8 @@ textarea, input {
     margin: 5px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
 }
 
 .quiz:hover {
@@ -97,6 +85,8 @@ textarea, input {
     font-weight: bold;
     padding-bottom: 4px;
     margin-bottom: 0;
+    word-wrap: break-word;
+    max-width: 80%;
 }
 
 .quizDescription {
@@ -104,6 +94,8 @@ textarea, input {
     font-style: italic;
     margin-top: 0;
     padding-top: 0;
+    word-wrap: break-word;
+    max-width: 80%;
 }
 
 form {
@@ -116,8 +108,7 @@ form {
 }
 
 .formSubmit {
-    position: absolute;
-    bottom: 10px;
+    margin-top: 20px;
     padding: 5px;
     border-radius: 4px;
     background-color: white;
@@ -136,12 +127,23 @@ form {
     align-items: flex-start;
 }
 
+.outcomeWeightsLabel {
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
 #error {
     color: red;  
     padding-bottom: 10px;
 }
 
-#quizName, #quizDescription {
+#quizDescription {
+    border: 1px solid darkgreen;
+    margin-bottom: 8px;
+    padding: 6px;
+}
+
+#quizName {
     border: 1px solid darkgreen;
     margin-bottom: 8px;
     padding: 6px;
@@ -203,6 +205,17 @@ form {
     border-bottom: 5px solid darkgreen;
 }
 
+.answerOption {
+    padding: 5px;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.answerOption:hover {
+    background-color: darkgreen;
+    color: beige;
+}
+
 .answer {
     margin-bottom: 10px;
 }
@@ -210,6 +223,9 @@ form {
 #description {
     font-style: italic;
     color: lawngreen;
+    word-wrap: break-word;
+    max-width: 50%;
+    margin-bottom: 100px;
 }
 
 #resultWindow {
@@ -226,4 +242,67 @@ form {
 #resultWindow p {
     font-style: italic;
     margin-bottom: 40px;
+}
+
+.ad {
+    z-index: -1;
+    box-shadow: 0px 0px 50px lawngreen;
+}
+
+#mainPageLeftAds {
+    margin-right: 80px;
+    margin-left: 20px;
+    margin-top: 40px;
+}
+
+#mainPageRightAds {
+    margin-left: 80px;
+    margin-top: 40px;
+    margin-right: 20px;
+}
+
+#makeQuizTopAds {
+    height: 200px;
+    width: 90%;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+#makeQuizLeftAds {
+    margin-right: 100px;
+}
+
+#makeQuizRightAds {
+    margin-left: 100px;
+}
+
+#takeQuizBottomAds {
+    width: 90%;
+    margin-top: 140px;
+    height: 350px;
+}
+
+#contentPlusAds {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    align-content: space-between;
+    justify-content: center;
+    align-items: center;
+}
+
+#content {
+    min-width: 350px;
+    padding-top: 20px;
+    padding-left: 30px;
+    padding-bottom: 20px;
+    padding-right: 30px;
+    margin-top: 20px;
+    background-color: beige;
+    color: black;
+    box-shadow: 0px 0px 10px lawngreen;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }

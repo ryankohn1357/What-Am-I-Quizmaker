@@ -8,6 +8,7 @@ const iterations = 10000;
 const saltLength = 64;
 const keyLength = 64;
 
+// all information stored for an account in the database
 const AccountSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -30,12 +31,13 @@ const AccountSchema = new mongoose.Schema({
   },
 });
 
+// information to send to the user about an account
 AccountSchema.statics.toAPI = doc => ({
-  // _id is built into your mongo document and is guaranteed to be unique
   username: doc.username,
   _id: doc._id,
 });
 
+// determines if a password is valid for a given account
 const validatePassword = (doc, password, callback) => {
   const pass = doc.password;
 
@@ -47,6 +49,7 @@ const validatePassword = (doc, password, callback) => {
   });
 };
 
+// search the database for an account with the given username
 AccountSchema.statics.findByUsername = (name, callback) => {
   const search = {
     username: name,
@@ -63,6 +66,8 @@ AccountSchema.statics.generateHash = (password, callback) => {
   );
 };
 
+// will determine if the username/password pair matches
+// an account and call callback method accordingly
 AccountSchema.statics.authenticate = (username, password, callback) =>
 AccountModel.findByUsername(username, (err, doc) => {
   if (err) {

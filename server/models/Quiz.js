@@ -3,9 +3,11 @@ const _ = require('underscore');
 
 mongoose.Promise = global.Promise;
 let QuizModel = {};
+
 const convertId = mongoose.Types.ObjectId;
 const setName = (name) => _.escape(name).trim();
 
+// all information contained by a quiz to be stored in the database
 const QuizSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -52,14 +54,16 @@ const QuizSchema = new mongoose.Schema({
   },
 });
 
+// information to send about a quiz to the client
 QuizSchema.statics.toAPI = doc => ({
   name: doc.name,
   description: doc.description,
   questions: doc.questions,
   outcomes: doc.outcomes,
-  id: doc._id,
+  _id: doc._id,
 });
 
+// search the database for a quiz with a specific owner
 QuizSchema.statics.findByOwner = (ownerId, callback) => {
   const search = {
     owner: convertId(ownerId),
@@ -68,13 +72,7 @@ QuizSchema.statics.findByOwner = (ownerId, callback) => {
   return QuizModel.find(search).select('name description questions outcomes').exec(callback);
 };
 
-QuizSchema.statics.findById = (id, callback) => {
-  const search = {
-    _id: id,
-  };
-  return QuizModel.find(search).select('name description questions outcomes').exec(callback);
-};
-
+// search the database for a quiz with a specific name + description
 QuizSchema.statics.findByNameAndDescription = (name, description, callback) => {
   const search = {
     name,
@@ -83,6 +81,7 @@ QuizSchema.statics.findByNameAndDescription = (name, description, callback) => {
   return QuizModel.find(search).select('name description questions outcomes').exec(callback);
 };
 
+// returns all quizzes in the database
 QuizSchema.statics.getAllQuizzes = (callback) => {
   QuizModel.find(callback);
 };

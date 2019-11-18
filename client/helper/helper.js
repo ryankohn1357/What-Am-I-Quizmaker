@@ -1,3 +1,5 @@
+
+// display error messages in error section of view
 const handleError = (message) => {
     let error = document.querySelector("#error");
     if(error) {
@@ -5,10 +7,12 @@ const handleError = (message) => {
     }
 };
 
+// go to given web page
 const redirect = (response) => {
     window.location = response.redirect;
 };
 
+// send an ajax request
 const sendAjax = (type, action, data, success) => {
     $.ajax({
         cache: false,
@@ -18,12 +22,7 @@ const sendAjax = (type, action, data, success) => {
         dataType: "json",
         success: success,
         error: function(xhr, status, error) {
-            if(xhr.responseJSON) {
-                handleError(xhr.responseJSON.error);
-            }
-            else {
-                handleError(error);
-            }
+            handleError(JSON.parse(xhr.responseText).error);
         }
     });
 };

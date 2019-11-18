@@ -9,6 +9,7 @@ var answersPerQuestion = 4;
 var questionPos = 0;
 var outcomes = [];
 
+// store information from initial window and move to the outcome window
 var handleInitialWindow = function handleInitialWindow() {
     var name = document.querySelector("#quizName").value;
     var description = document.querySelector("#quizDescription").value;
@@ -24,10 +25,10 @@ var handleInitialWindow = function handleInitialWindow() {
     numQuestions = Number(document.querySelector("#numQuestions").value);
     numOutcomes = Number(document.querySelector("#numOutcomes").value);
     answersPerQuestion = Number(document.querySelector("#answersPerQuestion").value);
-    document.querySelector("#content").innerHTML = "";
     createOutcomesWindow(csrf);
 };
 
+// store information from outcomes window and move to question window
 var handleQuizOutcomes = function handleQuizOutcomes() {
     for (var i = 0; i < numOutcomes; i++) {
         var outcome = document.querySelector("#outcome" + i);
@@ -41,10 +42,10 @@ var handleQuizOutcomes = function handleQuizOutcomes() {
         outcomes.push({ name: outcomeName, description: outcomeDescription });
     }
     var csrf = document.querySelector("#_csrf").value;
-    document.querySelector("#content").innerHTML = "";
     createQuestionsWindow(csrf);
 };
 
+// build up quiz object and send it to the server
 var handleQuizSubmission = function handleQuizSubmission() {
     quiz.name = quizName;
     quiz.description = quizDescription;
@@ -97,6 +98,7 @@ var handleQuizSubmission = function handleQuizSubmission() {
     }, redirect);
 };
 
+// react element for getting initial information for making a quiz
 var InitialWindow = function InitialWindow(props) {
     return React.createElement(
         "div",
@@ -170,6 +172,7 @@ var InitialWindow = function InitialWindow(props) {
     );
 };
 
+// react element for getting outcome information from the user
 var OutcomesWindow = function OutcomesWindow(props) {
     var outcomeArray = [];
     for (var i = 0; i < numOutcomes; i++) {
@@ -205,6 +208,7 @@ var OutcomesWindow = function OutcomesWindow(props) {
     );
 };
 
+// react element for getting question information from the user
 var QuestionsWindow = function QuestionsWindow(props) {
     var questionArray = [];
     for (var i = 0; i < numQuestions; i++) {
@@ -289,6 +293,7 @@ var QuestionsWindow = function QuestionsWindow(props) {
     );
 };
 
+// render question window to content and setup events for the sliders/buttons
 var createQuestionsWindow = function createQuestionsWindow(csrf) {
     ReactDOM.render(React.createElement(QuestionsWindow, { csrf: csrf }), document.querySelector("#content"));
 
@@ -319,6 +324,7 @@ var createQuestionsWindow = function createQuestionsWindow(csrf) {
     });
 };
 
+// render intitial window and setup events for the sliders/buttons
 var createInitialWindow = function createInitialWindow(csrf) {
     ReactDOM.render(React.createElement(InitialWindow, { csrf: csrf }), document.querySelector("#content"));
     document.querySelector("#initialSubmitButton").addEventListener("click", function () {
@@ -341,6 +347,7 @@ var createInitialWindow = function createInitialWindow(csrf) {
     });
 };
 
+// render outcomes window to content and setup button event
 var createOutcomesWindow = function createOutcomesWindow(csrf) {
     ReactDOM.render(React.createElement(OutcomesWindow, { csrf: csrf }), document.querySelector("#content"));
     document.querySelector("#outcomeSubmitButton").addEventListener("click", function () {
@@ -363,6 +370,7 @@ $(document).ready(function () {
 });
 "use strict";
 
+// display error messages in error section of view
 var handleError = function handleError(message) {
     var error = document.querySelector("#error");
     if (error) {
@@ -370,10 +378,12 @@ var handleError = function handleError(message) {
     }
 };
 
+// go to given web page
 var redirect = function redirect(response) {
     window.location = response.redirect;
 };
 
+// send an ajax request
 var sendAjax = function sendAjax(type, action, data, success) {
     $.ajax({
         cache: false,
@@ -383,11 +393,7 @@ var sendAjax = function sendAjax(type, action, data, success) {
         dataType: "json",
         success: success,
         error: function error(xhr, status, _error) {
-            if (xhr.responseJSON) {
-                handleError(xhr.responseJSON.error);
-            } else {
-                handleError(_error);
-            }
+            handleError(JSON.parse(xhr.responseText).error);
         }
     });
 };

@@ -4,6 +4,7 @@ const url = require('url');
 
 const Quiz = models.Quiz;
 
+// store a quiz in the database with the given name/description/questions/outcomes
 const createQuiz = (req, res) => {
   if (!req.body.name || !req.body.description || !req.body.questions || !req.body.outcomes) {
     return res.status(400).json({ error: 'Missing required field' });
@@ -31,8 +32,10 @@ const createQuiz = (req, res) => {
   return quizPromise;
 };
 
+// returns makeQuiz view
 const makeQuizPage = (req, res) => res.render('makeQuiz', { csrfToken: req.csrfToken() });
 
+// returns takeQuiz view with the given quiz name and description
 const takeQuizPage = (req, res) => {
   const parsedUrl = url.parse(req.url);
   const params = query.parse(parsedUrl.query);
@@ -44,6 +47,7 @@ const takeQuizPage = (req, res) => {
     description: params.description });
 };
 
+// returns a quiz from the database with the given name and description
 const getQuiz = (req, res) => {
   const parsedUrl = url.parse(req.url);
   const params = query.parse(parsedUrl.query);
@@ -61,6 +65,7 @@ const getQuiz = (req, res) => {
   });
 };
 
+// returns all quizzes from the database
 const getQuizzes = (req, res) => Quiz.QuizModel.getAllQuizzes((err, docs) => {
   if (err) {
     console.log(err);

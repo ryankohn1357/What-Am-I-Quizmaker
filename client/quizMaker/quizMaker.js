@@ -7,6 +7,7 @@ let answersPerQuestion = 4;
 let questionPos = 0;
 let outcomes = [];
 
+// store information from initial window and move to the outcome window
 const handleInitialWindow = () => {
     const name = document.querySelector("#quizName").value;
     const description = document.querySelector("#quizDescription").value;
@@ -22,10 +23,10 @@ const handleInitialWindow = () => {
     numQuestions = Number(document.querySelector("#numQuestions").value);
     numOutcomes = Number(document.querySelector("#numOutcomes").value);
     answersPerQuestion = Number(document.querySelector("#answersPerQuestion").value);
-    document.querySelector("#content").innerHTML = "";
     createOutcomesWindow(csrf);
 };
 
+// store information from outcomes window and move to question window
 const handleQuizOutcomes = () => {
     for (let i = 0; i < numOutcomes; i++) {
         let outcome = document.querySelector(`#outcome${i}`);
@@ -39,10 +40,10 @@ const handleQuizOutcomes = () => {
         outcomes.push({ name: outcomeName, description: outcomeDescription });
     }
     const csrf = document.querySelector("#_csrf").value;
-    document.querySelector("#content").innerHTML = "";
     createQuestionsWindow(csrf);
 };
 
+// build up quiz object and send it to the server
 const handleQuizSubmission = () => {
     quiz.name = quizName;
     quiz.description = quizDescription;
@@ -95,11 +96,13 @@ const handleQuizSubmission = () => {
     }, redirect);
 };
 
+// react element for getting initial information for making a quiz
 const InitialWindow = (props) => {
     return (
         <div id="initialQuizWindow">
             <input id="quizName" placeholder="Quiz Name"></input>
-            <textarea id="quizDescription" placeholder="Quiz Description" rows="8" cols="40"></textarea>
+            <textarea id="quizDescription" placeholder="Quiz Description" rows="8" cols="40">
+            </textarea>
             <div className="sliderPlusLabel">
                 <label>Number of Questions:</label>
                 <div className="sliderContainer">
@@ -128,6 +131,7 @@ const InitialWindow = (props) => {
     );
 };
 
+// react element for getting outcome information from the user
 const OutcomesWindow = (props) => {
     let outcomeArray = [];
     for (let i = 0; i < numOutcomes; i++) {
@@ -157,6 +161,7 @@ const OutcomesWindow = (props) => {
     );
 };
 
+// react element for getting question information from the user
 const QuestionsWindow = (props) => {
     let questionArray = [];
     for (let i = 0; i < numQuestions; i++) {
@@ -219,6 +224,7 @@ const QuestionsWindow = (props) => {
     );
 };
 
+// render question window to content and setup events for the sliders/buttons
 const createQuestionsWindow = (csrf) => {
     ReactDOM.render(
         <QuestionsWindow csrf={csrf} />,
@@ -247,6 +253,7 @@ const createQuestionsWindow = (csrf) => {
     });
 };
 
+// render intitial window and setup events for the sliders/buttons
 const createInitialWindow = (csrf) => {
     ReactDOM.render(
         <InitialWindow csrf={csrf} />,
@@ -272,6 +279,7 @@ const createInitialWindow = (csrf) => {
     });
 };
 
+// render outcomes window to content and setup button event
 const createOutcomesWindow = (csrf) => {
     ReactDOM.render(
         <OutcomesWindow csrf={csrf} />,

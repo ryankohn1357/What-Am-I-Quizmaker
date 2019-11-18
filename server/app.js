@@ -23,6 +23,7 @@ mongoose.connect(dbURL, (err) => {
   }
 });
 
+// get redis info
 let redisURL = {
   hostname: 'redis-13011.c9.us-east-1-4.ec2.cloud.redislabs.com', // hostname from RedisLabs
   port: '13011', // port number from RedisLabs
@@ -38,6 +39,7 @@ if (process.env.REDISCLOUD_URL) {
 // pull in our routes
 const router = require('./router.js');
 
+// set up app
 const app = express();
 app.use('/assets', express.static(path.resolve(`${__dirname}/../hosted/`)));
 app.use(favicon(`${__dirname}/../hosted/img/favicon.png`));
