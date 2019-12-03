@@ -81,6 +81,14 @@ QuizSchema.statics.findByNameAndDescription = (name, description, callback) => {
   return QuizModel.find(search).select('name description questions outcomes').exec(callback);
 };
 
+// search for a quiz with the given id
+QuizSchema.statics.findById = (id, callback) => {
+  const search = {
+    _id: id,
+  };
+  return QuizModel.find(search).select('name description questions outcomes').exec(callback);
+};
+
 // returns all quizzes in the database
 QuizSchema.statics.getAllQuizzes = (callback) => {
   QuizModel.find(callback);

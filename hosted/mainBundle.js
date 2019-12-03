@@ -90,18 +90,33 @@ var SignupWindow = function SignupWindow(props) {
 // currently only is able to change passwords
 var MyAccountWindow = function MyAccountWindow(props) {
     return React.createElement(
-        "form",
-        { id: "changePasswordForm", name: "changePasswordForm",
-            onSubmit: handleChangePassword,
-            action: "/changePassword",
-            method: "POST",
-            className: "mainForm"
-        },
-        React.createElement("input", { id: "oldPassword", type: "password", name: "oldPassword", placeholder: "Old Password" }),
-        React.createElement("input", { id: "newPassword", type: "password", name: "newPassword", placeholder: "New Password" }),
-        React.createElement("input", { type: "hidden", name: "_csrf", value: props.csrf }),
-        React.createElement("input", { className: "formSubmit", type: "submit", value: "Change Password" }),
-        React.createElement("p", { id: "error" })
+        "div",
+        { id: "myAccount" },
+        React.createElement(
+            "h4",
+            { id: "changePasswordButton", className: "accountButton" },
+            "Change Password"
+        ),
+        React.createElement(
+            "form",
+            { id: "changePasswordForm", name: "changePasswordForm",
+                onSubmit: handleChangePassword,
+                action: "/changePassword",
+                method: "POST",
+                className: "mainForm"
+            },
+            React.createElement("input", { id: "oldPassword", type: "password", name: "oldPassword", placeholder: "Old Password" }),
+            React.createElement("input", { id: "newPassword", type: "password", name: "newPassword", placeholder: "New Password" }),
+            React.createElement("input", { type: "hidden", name: "_csrf", value: props.csrf }),
+            React.createElement("input", { className: "formSubmit", type: "submit", value: "Submit" }),
+            React.createElement("p", { id: "error" })
+        ),
+        React.createElement(
+            "h4",
+            { id: "ownedQuizzesButton", className: "accountButton" },
+            "My Quizzes"
+        ),
+        React.createElement("div", { id: "ownedQuizzes" })
     );
 };
 
@@ -149,6 +164,51 @@ var QuizList = function QuizList(props) {
     );
 };
 
+var OwnedQuizList = function OwnedQuizList(props) {
+    if (props.quizzes.length === 0) {
+        return React.createElement(
+            "div",
+            { className: "quizList" },
+            React.createElement(
+                "h3",
+                { className: "emptyQuizzes" },
+                "No quizzes yet"
+            )
+        );
+    }
+
+    var quizNodes = props.quizzes.map(function (quiz) {
+        return React.createElement(
+            "div",
+            { key: quiz._id, className: "ownedQuiz" },
+            React.createElement(
+                "h3",
+                { className: "quizName" },
+                " ",
+                quiz.name,
+                " "
+            ),
+            React.createElement(
+                "p",
+                { className: "changeButton" },
+                "Change"
+            ),
+            React.createElement(
+                "p",
+                { className: "deleteButton" },
+                "Delete"
+            ),
+            React.createElement("input", { hidden: true, className: "quizId", value: quiz._id })
+        );
+    });
+
+    return React.createElement(
+        "div",
+        { className: "quizList" },
+        quizNodes
+    );
+};
+
 // get all the quizzes that have been made to the server and 
 // create QuizList react element to display them
 var loadQuizzesFromServer = function loadQuizzesFromServer() {
@@ -162,8 +222,9 @@ var loadQuizzesFromServer = function loadQuizzesFromServer() {
             var quiz = quizzes[i];
             var quizName = quiz.querySelector(".quizName").innerText;
             var quizDescription = quiz.querySelector(".quizDescription").innerText;
+            var quizId = quiz.querySelector(".quizId").value;
             quiz.addEventListener("click", function () {
-                var url = "/takeQuiz?name=" + quizName + "&description=" + quizDescription;
+                var url = "/takeQuiz?quizId=" + quizId + "&quizName=" + quizName + "&quizDescription=" + quizDescription;
                 window.location = url;
             });
         };
@@ -171,6 +232,30 @@ var loadQuizzesFromServer = function loadQuizzesFromServer() {
         for (var i = 0; i < quizzes.length; i++) {
             _loop(i);
         }
+    });
+};
+
+var loadOwnedQuizzesFromServer = function loadOwnedQuizzesFromServer() {
+    var filterByOwner = true;
+    sendAjax('GET', '/getQuizzes', filterByOwner, function (data) {
+        ReactDOM.render(React.createElement(OwnedQuizList, { quizzes: data.quizzes }), document.querySelector("#ownedQuizzes"));
+        var ownedQuizzesButton = document.querySelector("#ownedQuizzesButton");
+        var ownedQuizzes = document.querySelector("#ownedQuizzes");
+        ownedQuizzes.style.maxHeight = 0;
+        ownedQuizzes.style.padding = 0;
+        ownedQuizzes.style.margin = 0;
+        ownedQuizzesButton.onclick = function () {
+            if (ownedQuizzes.style.maxHeight == "0px") {
+                var numQuizzes = ownedQuizzes.querySelectorAll(".ownedQuiz").length;
+                ownedQuizzes.style.maxHeight = numQuizzes * 200 + "px";
+                ownedQuizzes.style.padding = "auto";
+                ownedQuizzes.style.margin = "auto";
+            } else {
+                ownedQuizzes.style.maxHeight = 0;
+                ownedQuizzes.style.padding = 0;
+                ownedQuizzes.style.margin = 0;
+            }
+        };
     });
 };
 
@@ -185,8 +270,28 @@ var createSignupWindow = function createSignupWindow(csrf) {
 };
 
 // render account window to content
-var createMyAccountWindow = function createMyAccountWindow(csrf) {
-    ReactDOM.render(React.createElement(MyAccountWindow, { csrf: csrf }), document.querySelector("#content"));
+var createMyAccountWindow = function createMyAccountWindow(csrf, ownedQuizzes) {
+    ReactDOM.render(React.createElement(MyAccountWindow, { csrf: csrf, ownedQuizzes: ownedQuizzes }), document.querySelector("#content"));
+
+    var changePasswordButton = document.querySelector("#changePasswordButton");
+    var changePasswordForm = document.querySelector("#changePasswordForm");
+    changePasswordForm.style.maxHeight = 0;
+    changePasswordForm.style.padding = 0;
+    changePasswordForm.style.margin = 0;
+
+    changePasswordButton.onclick = function () {
+        if (changePasswordForm.style.maxHeight == "0px") {
+            changePasswordForm.style.maxHeight = "150px";
+            changePasswordForm.style.padding = "auto";
+            changePasswordForm.style.margin = "auto";
+            changePasswordForm.querySelector("#error").innerText = "";
+        } else {
+            changePasswordForm.style.maxHeight = 0;
+            changePasswordForm.style.padding = 0;
+            changePasswordForm.style.margin = 0;
+        }
+    };
+    loadOwnedQuizzesFromServer();
 };
 
 var setup = function setup(csrf) {
@@ -199,7 +304,7 @@ var setup = function setup(csrf) {
     } else {
         linkOptions.innerHTML = "<li class='navlink'><a href='/logout' id='logoutButton'>Log Out</a></li>";
         linkOptions.innerHTML += "<li class='navlink'><a href='/makeQuiz' id='makeQuizButton'>Make Quiz</a></li>";
-        linkOptions.innerHTML += "<li class='navlink'><a id='myAccountButton'>Change Password</a></li>";
+        linkOptions.innerHTML += "<li class='navlink'><a id='myAccountButton'>My Account</a></li>";
     }
 
     var loginButton = document.querySelector("#loginButton");
@@ -222,7 +327,7 @@ var setup = function setup(csrf) {
     if (myAccountButton) {
         myAccountButton.addEventListener("click", function (e) {
             e.preventDefault();
-            createMyAccountWindow(csrf);
+            createMyAccountWindow(csrf, null);
             return false;
         });
     }

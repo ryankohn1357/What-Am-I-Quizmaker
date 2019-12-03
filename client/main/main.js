@@ -88,18 +88,23 @@ const SignupWindow = (props) => {
 // currently only is able to change passwords
 const MyAccountWindow = (props) => {
     return (
-        <form id="changePasswordForm" name="changePasswordForm"
-            onSubmit={handleChangePassword}
-            action="/changePassword"
-            method="POST"
-            className="mainForm"
-        >
-            <input id="oldPassword" type="password" name="oldPassword" placeholder="Old Password" />
-            <input id="newPassword" type="password" name="newPassword" placeholder="New Password" />
-            <input type="hidden" name="_csrf" value={props.csrf} />
-            <input className="formSubmit" type="submit" value="Change Password" />
-            <p id="error"></p>
-        </form>
+        <div id="myAccount">
+            <h4 id="changePasswordButton" className="accountButton">Change Password</h4>
+            <form id="changePasswordForm" name="changePasswordForm"
+                onSubmit={handleChangePassword}
+                action="/changePassword"
+                method="POST"
+                className="mainForm"
+            >
+                <input id="oldPassword" type="password" name="oldPassword" placeholder="Old Password" />
+                <input id="newPassword" type="password" name="newPassword" placeholder="New Password" />
+                <input type="hidden" name="_csrf" value={props.csrf} />
+                <input className="formSubmit" type="submit" value="Submit" />
+                <p id="error"></p>
+            </form>
+            <h4 id="ownedQuizzesButton" className="accountButton">My Quizzes</h4>
+            <div id="ownedQuizzes"></div>
+        </div>
     );
 };
 
@@ -131,6 +136,33 @@ const QuizList = function (props) {
     );
 };
 
+const OwnedQuizList = function (props) {
+    if (props.quizzes.length === 0) {
+        return (
+            <div className="quizList">
+                <h3 className="emptyQuizzes">No quizzes yet</h3>
+            </div>
+        );
+    }
+
+    const quizNodes = props.quizzes.map(function (quiz) {
+        return (
+            <div key={quiz._id} className="ownedQuiz">
+                <h3 className="quizName"> {quiz.name} </h3>
+                <p className="changeButton">Change</p>
+                <p className="deleteButton">Delete</p>
+                <input hidden className="quizId" value={quiz._id}></input>
+            </div>
+        );
+    });
+
+    return (
+        <div className="quizList">
+            {quizNodes}
+        </div>
+    );
+}
+
 // get all the quizzes that have been made to the server and 
 // create QuizList react element to display them
 const loadQuizzesFromServer = () => {
@@ -145,11 +177,41 @@ const loadQuizzesFromServer = () => {
             let quiz = quizzes[i];
             let quizName = quiz.querySelector(".quizName").innerText;
             let quizDescription = quiz.querySelector(".quizDescription").innerText;
+            let quizId = quiz.querySelector(".quizId").value;
             quiz.addEventListener("click", () => {
-                let url = "/takeQuiz?name=" + quizName + "&description=" + quizDescription;
+                let url = `/takeQuiz?quizId=${quizId}&quizName=${quizName}&quizDescription=${quizDescription}`
                 window.location = url;
             });
         }
+    });
+};
+
+const loadOwnedQuizzesFromServer = () => {
+    let filterByOwner = true;
+    sendAjax('GET', '/getQuizzes', filterByOwner, (data) => {
+        ReactDOM.render(
+            <OwnedQuizList quizzes={data.quizzes} />,
+            document.querySelector("#ownedQuizzes")
+        );
+        let ownedQuizzesButton = document.querySelector("#ownedQuizzesButton");
+        let ownedQuizzes = document.querySelector("#ownedQuizzes");
+        ownedQuizzes.style.maxHeight = 0;
+        ownedQuizzes.style.padding = 0;
+        ownedQuizzes.style.margin = 0;
+        ownedQuizzesButton.onclick = () => {
+            if (ownedQuizzes.style.maxHeight == "0px") {
+                let numQuizzes = ownedQuizzes.querySelectorAll(".ownedQuiz").length;
+                ownedQuizzes.style.maxHeight = `${numQuizzes * 200}px`;
+                ownedQuizzes.style.padding = "auto";
+                ownedQuizzes.style.margin = "auto";
+            }
+            else {
+                ownedQuizzes.style.maxHeight = 0;
+                ownedQuizzes.style.padding = 0;
+                ownedQuizzes.style.margin = 0;
+            }
+        };
+
     });
 };
 
@@ -170,11 +232,32 @@ const createSignupWindow = (csrf) => {
 };
 
 // render account window to content
-const createMyAccountWindow = (csrf) => {
+const createMyAccountWindow = (csrf, ownedQuizzes) => {
     ReactDOM.render(
-        <MyAccountWindow csrf={csrf} />,
+        <MyAccountWindow csrf={csrf} ownedQuizzes={ownedQuizzes} />,
         document.querySelector("#content")
     );
+
+    let changePasswordButton = document.querySelector("#changePasswordButton");
+    let changePasswordForm = document.querySelector("#changePasswordForm");
+    changePasswordForm.style.maxHeight = 0;
+    changePasswordForm.style.padding = 0;
+    changePasswordForm.style.margin = 0;
+
+    changePasswordButton.onclick = () => {
+        if (changePasswordForm.style.maxHeight == "0px") {
+            changePasswordForm.style.maxHeight = "150px";
+            changePasswordForm.style.padding = "auto";
+            changePasswordForm.style.margin = "auto";
+            changePasswordForm.querySelector("#error").innerText = "";
+        }
+        else {
+            changePasswordForm.style.maxHeight = 0;
+            changePasswordForm.style.padding = 0;
+            changePasswordForm.style.margin = 0;
+        }
+    };
+    loadOwnedQuizzesFromServer();
 };
 
 const setup = (csrf) => {
@@ -188,7 +271,7 @@ const setup = (csrf) => {
     else {
         linkOptions.innerHTML = "<li class='navlink'><a href='/logout' id='logoutButton'>Log Out</a></li>";
         linkOptions.innerHTML += "<li class='navlink'><a href='/makeQuiz' id='makeQuizButton'>Make Quiz</a></li>";
-        linkOptions.innerHTML += "<li class='navlink'><a id='myAccountButton'>Change Password</a></li>";
+        linkOptions.innerHTML += "<li class='navlink'><a id='myAccountButton'>My Account</a></li>";
     }
 
     const loginButton = document.querySelector("#loginButton");
@@ -211,7 +294,7 @@ const setup = (csrf) => {
     if (myAccountButton) {
         myAccountButton.addEventListener("click", (e) => {
             e.preventDefault();
-            createMyAccountWindow(csrf);
+            createMyAccountWindow(csrf, null);
             return false;
         });
     }

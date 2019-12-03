@@ -141,7 +141,8 @@ var createResultWindow = function createResultWindow() {
 var loadQuizFromServer = function loadQuizFromServer() {
     var quizName = document.querySelector("#title").innerHTML;
     var quizDescription = document.querySelector("#description").innerHTML;
-    var url = "/getQuiz?name=" + quizName + "&description=" + quizDescription;
+    var quizId = document.querySelector("#quizId").value;
+    var url = "/getQuiz?name=" + quizName + "&description=" + quizDescription + "&quizId=" + quizId;
     sendAjax("GET", url, null, function (result) {
         quiz = result.quiz;
         var outcomes = quiz.outcomes;

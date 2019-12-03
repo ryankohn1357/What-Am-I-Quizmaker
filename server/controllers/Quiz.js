@@ -1,6 +1,4 @@
 const models = require('../models');
-const query = require('querystring');
-const url = require('url');
 
 const Quiz = models.Quiz;
 
@@ -37,25 +35,23 @@ const makeQuizPage = (req, res) => res.render('makeQuiz', { csrfToken: req.csrfT
 
 // returns takeQuiz view with the given quiz name and description
 const takeQuizPage = (req, res) => {
-  const parsedUrl = url.parse(req.url);
-  const params = query.parse(parsedUrl.query);
-  if (!params.name || !params.description) {
-    return res.status(400).json({ error: 'Missing name or description' });
+  if (!req.query.quizName || !req.query.quizDescription || !req.query.quizId) {
+    return res.status(400).json({ error: 'Missing name, description, or id' });
   }
 
-  return res.render('takeQuiz', { csrfToken: req.csrfToken(), name: params.name,
-    description: params.description });
+  return res.render('takeQuiz', {
+    csrfToken: req.csrfToken(), quizName: req.query.quizName,
+    quizDescription: req.query.quizDescription, quizId: req.query.quizId
+  });
 };
 
 // returns a quiz from the database with the given name and description
 const getQuiz = (req, res) => {
-  const parsedUrl = url.parse(req.url);
-  const params = query.parse(parsedUrl.query);
-  if (!params.name || !params.description) {
-    return res.status(400).json({ error: 'Missing name or description' });
+  if (!req.query.quizId) {
+    return res.status(400).json({ error: 'Missing quiz id' });
   }
 
-  return Quiz.QuizModel.findByNameAndDescription(params.name, params.description, (err, doc) => {
+  return Quiz.QuizModel.findById(req.query.quizId, (err, doc) => {
     if (err) {
       console.log(err);
       return res.status(400).json({ error: 'An error occurred' });
@@ -66,14 +62,26 @@ const getQuiz = (req, res) => {
 };
 
 // returns all quizzes from the database
-const getQuizzes = (req, res) => Quiz.QuizModel.getAllQuizzes((err, docs) => {
-  if (err) {
-    console.log(err);
-    return res.status(400).json({ error: 'An error occurred' });
-  }
+const getQuizzes = (req, res) => {
+  if (req.query.filterByOwner) {
+    return Quiz.QuizModel.findByOwner(req.session.account._id, (err, docs) => {
+      if (err) {
+        console.log(err);
+        return res.status(400).json({ error: 'An error occurred' });
+      }
 
-  return res.json({ quizzes: docs });
-});
+      return res.status(200).json({ quizzes: docs });
+    });
+  }
+  Quiz.QuizModel.getAllQuizzes((err, docs) => {
+    if (err) {
+      console.log(err);
+      return res.status(400).json({ error: 'An error occurred' });
+    }
+
+    return res.json({ quizzes: docs });
+  });
+}
 
 module.exports.createQuiz = createQuiz;
 module.exports.makeQuizPage = makeQuizPage;

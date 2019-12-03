@@ -117,7 +117,8 @@ const createResultWindow = () => {
 const loadQuizFromServer = () => {
     let quizName = document.querySelector("#title").innerHTML;
     let quizDescription = document.querySelector("#description").innerHTML;
-    let url = "/getQuiz?name=" + quizName + "&description=" + quizDescription;
+    let quizId = document.querySelector("#quizId").value;
+    let url = `/getQuiz?name=${quizName}&description=${quizDescription}&quizId=${quizId}`;
     sendAjax("GET", url, null, (result) => {
         quiz = result.quiz;
         let outcomes = quiz.outcomes;

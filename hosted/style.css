@@ -53,6 +53,7 @@ nav {
 
 textarea, input {
     padding: 8px;
+    max-width: 350px;
 }
 
 .quizList {
@@ -119,6 +120,10 @@ form {
     background-color: darkgreen;
     color: beige;
     border: 1px solid black;
+}
+
+.accountButton {
+    text-align: center;
 }
 
 #initialQuizWindow, #outcomeWindow, .outcome {
@@ -305,4 +310,9 @@ form {
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+#changePasswordForm, #ownedQuizzes {
+    overflow: hidden;
+    transition: 0.5s;
 }
