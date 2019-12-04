@@ -94,6 +94,15 @@ QuizSchema.statics.getAllQuizzes = (callback) => {
   QuizModel.find(callback);
 };
 
+QuizSchema.statics.deleteQuiz = (quizId, ownerId, callback) => {
+  const search = {
+    _id: quizId,
+    owner: convertId(ownerId),
+  };
+
+  return QuizModel.deleteOne(search).exec(callback);
+};
+
 QuizModel = mongoose.model('Quiz', QuizSchema);
 
 module.exports.QuizModel = QuizModel;

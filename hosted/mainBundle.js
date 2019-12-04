@@ -49,6 +49,14 @@ var handleChangePassword = function handleChangePassword(e) {
     return false;
 };
 
+var handleDeleteQuiz = function handleDeleteQuiz(e, csrf, quizId) {
+    e.preventDefault();
+
+    sendAjax('POST', '/deleteQuiz', { quizId: quizId, _csrf: csrf }, loadOwnedQuizzesFromServer);
+
+    return false;
+};
+
 // react element for logging in
 var LoginWindow = function LoginWindow(props) {
     return React.createElement(
@@ -92,6 +100,8 @@ var MyAccountWindow = function MyAccountWindow(props) {
     return React.createElement(
         "div",
         { id: "myAccount" },
+        React.createElement("p", { id: "error" }),
+        React.createElement("input", { hidden: true, id: "csrf", value: props.csrf }),
         React.createElement(
             "h4",
             { id: "changePasswordButton", className: "accountButton" },
@@ -108,8 +118,7 @@ var MyAccountWindow = function MyAccountWindow(props) {
             React.createElement("input", { id: "oldPassword", type: "password", name: "oldPassword", placeholder: "Old Password" }),
             React.createElement("input", { id: "newPassword", type: "password", name: "newPassword", placeholder: "New Password" }),
             React.createElement("input", { type: "hidden", name: "_csrf", value: props.csrf }),
-            React.createElement("input", { className: "formSubmit", type: "submit", value: "Submit" }),
-            React.createElement("p", { id: "error" })
+            React.createElement("input", { className: "formSubmit", type: "submit", value: "Submit" })
         ),
         React.createElement(
             "h4",
@@ -240,22 +249,37 @@ var loadOwnedQuizzesFromServer = function loadOwnedQuizzesFromServer() {
     sendAjax('GET', '/getQuizzes', filterByOwner, function (data) {
         ReactDOM.render(React.createElement(OwnedQuizList, { quizzes: data.quizzes }), document.querySelector("#ownedQuizzes"));
         var ownedQuizzesButton = document.querySelector("#ownedQuizzesButton");
-        var ownedQuizzes = document.querySelector("#ownedQuizzes");
-        ownedQuizzes.style.maxHeight = 0;
-        ownedQuizzes.style.padding = 0;
-        ownedQuizzes.style.margin = 0;
+        var ownedQuizzesDiv = document.querySelector("#ownedQuizzes");
+        ownedQuizzesDiv.style.maxHeight = 0;
+        ownedQuizzesDiv.style.padding = 0;
+        ownedQuizzesDiv.style.margin = 0;
         ownedQuizzesButton.onclick = function () {
-            if (ownedQuizzes.style.maxHeight == "0px") {
-                var numQuizzes = ownedQuizzes.querySelectorAll(".ownedQuiz").length;
-                ownedQuizzes.style.maxHeight = numQuizzes * 200 + "px";
-                ownedQuizzes.style.padding = "auto";
-                ownedQuizzes.style.margin = "auto";
+            if (ownedQuizzesDiv.style.maxHeight == "0px") {
+                var numQuizzes = ownedQuizzesDiv.querySelectorAll(".ownedQuiz").length;
+                ownedQuizzesDiv.style.maxHeight = numQuizzes * 200 + "px";
+                ownedQuizzesDiv.style.padding = "auto";
+                ownedQuizzesDiv.style.margin = "auto";
             } else {
-                ownedQuizzes.style.maxHeight = 0;
-                ownedQuizzes.style.padding = 0;
-                ownedQuizzes.style.margin = 0;
+                ownedQuizzesDiv.style.maxHeight = 0;
+                ownedQuizzesDiv.style.padding = 0;
+                ownedQuizzesDiv.style.margin = 0;
+                document.querySelector("#error").innerText = "";
             }
         };
+        var ownedQuizzes = ownedQuizzesDiv.querySelectorAll(".ownedQuiz");
+        var csrf = document.querySelector("#csrf").value;
+
+        var _loop2 = function _loop2(i) {
+            var deleteButton = ownedQuizzes[i].querySelector(".deleteButton");
+            var ownedQuizId = ownedQuizzes[i].querySelector(".quizId").value;
+            deleteButton.onclick = function (e) {
+                handleDeleteQuiz(e, csrf, ownedQuizId);
+            };
+        };
+
+        for (var i = 0; i < ownedQuizzes.length; i++) {
+            _loop2(i);
+        }
     });
 };
 
@@ -284,7 +308,7 @@ var createMyAccountWindow = function createMyAccountWindow(csrf, ownedQuizzes) {
             changePasswordForm.style.maxHeight = "150px";
             changePasswordForm.style.padding = "auto";
             changePasswordForm.style.margin = "auto";
-            changePasswordForm.querySelector("#error").innerText = "";
+            document.querySelector("#error").innerText = "";
         } else {
             changePasswordForm.style.maxHeight = 0;
             changePasswordForm.style.padding = 0;

@@ -30,6 +30,20 @@ const createQuiz = (req, res) => {
   return quizPromise;
 };
 
+const deleteQuiz = (req, res) => {
+  if (!req.body.quizId) {
+    return res.status(400).json({ error: 'Missing quiz id' });
+  }
+
+  return Quiz.QuizModel.deleteQuiz(req.body.quizId, req.session.account._id, (doc) => {
+    console.log(doc);
+    if (!doc || !doc.deletedCount || doc.deletedCount !== 1) {
+      return res.status(400).json({ error: 'Failed to delete quiz' });
+    }
+    return res.status(204);
+  });
+};
+
 // returns makeQuiz view
 const makeQuizPage = (req, res) => res.render('makeQuiz', { csrfToken: req.csrfToken() });
 
@@ -41,7 +55,7 @@ const takeQuizPage = (req, res) => {
 
   return res.render('takeQuiz', {
     csrfToken: req.csrfToken(), quizName: req.query.quizName,
-    quizDescription: req.query.quizDescription, quizId: req.query.quizId
+    quizDescription: req.query.quizDescription, quizId: req.query.quizId,
   });
 };
 
@@ -73,7 +87,7 @@ const getQuizzes = (req, res) => {
       return res.status(200).json({ quizzes: docs });
     });
   }
-  Quiz.QuizModel.getAllQuizzes((err, docs) => {
+  return Quiz.QuizModel.getAllQuizzes((err, docs) => {
     if (err) {
       console.log(err);
       return res.status(400).json({ error: 'An error occurred' });
@@ -81,10 +95,11 @@ const getQuizzes = (req, res) => {
 
     return res.json({ quizzes: docs });
   });
-}
+};
 
 module.exports.createQuiz = createQuiz;
 module.exports.makeQuizPage = makeQuizPage;
 module.exports.takeQuizPage = takeQuizPage;
 module.exports.getQuizzes = getQuizzes;
 module.exports.getQuiz = getQuiz;
+module.exports.deleteQuiz = deleteQuiz;
