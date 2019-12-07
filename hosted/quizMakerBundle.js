@@ -3,11 +3,11 @@
 var quiz = {};
 var quizName = "";
 var quizDescription = "";
-var numQuestions = 1;
-var numOutcomes = 1;
+var numQuestions = 5;
+var numOutcomes = 2;
 var answersPerQuestion = 4;
-var questionPos = 0;
 var outcomes = [];
+var quizLoaded = false;
 
 // store information from initial window and move to the outcome window
 var handleInitialWindow = function handleInitialWindow() {
@@ -30,13 +30,13 @@ var handleInitialWindow = function handleInitialWindow() {
 
 // store information from outcomes window and move to question window
 var handleQuizOutcomes = function handleQuizOutcomes() {
+    outcomes = [];
     for (var i = 0; i < numOutcomes; i++) {
         var outcome = document.querySelector("#outcome" + i);
         var outcomeName = outcome.querySelector("#outcomeName" + i).value;
         var outcomeDescription = outcome.querySelector("#outcomeDescription" + i).value;
         if (outcomeName == "" || outcomeDescription == "") {
             handleError("Missing outcome name or description");
-            outcomes = [];
             return false;
         }
         outcomes.push({ name: outcomeName, description: outcomeDescription });
@@ -92,10 +92,19 @@ var handleQuizSubmission = function handleQuizSubmission() {
 
     var csrf = document.querySelector("#_csrf").value;
 
-    sendAjax('POST', "/makeQuiz", {
-        _csrf: csrf, questions: quiz.questions,
-        name: quiz.name, description: quiz.description, outcomes: quiz.outcomes
-    }, redirect);
+    // if modifying an existing quiz, update it, otherwise create new quiz
+    if (quizLoaded) {
+        var quizToChange = document.querySelector("#quizToChange").value;
+        sendAjax('POST', "/updateQuiz", {
+            _csrf: csrf, quizId: quizToChange, questions: quiz.questions,
+            name: quiz.name, description: quiz.description, outcomes: quiz.outcomes
+        }, redirect);
+    } else {
+        sendAjax('POST', "/makeQuiz", {
+            _csrf: csrf, questions: quiz.questions,
+            name: quiz.name, description: quiz.description, outcomes: quiz.outcomes
+        }, redirect);
+    }
 };
 
 // react element for getting initial information for making a quiz
@@ -104,7 +113,8 @@ var InitialWindow = function InitialWindow(props) {
         "div",
         { id: "initialQuizWindow" },
         React.createElement("input", { id: "quizName", placeholder: "Quiz Name" }),
-        React.createElement("textarea", { id: "quizDescription", placeholder: "Quiz Description", rows: "8", cols: "40" }),
+        React.createElement("textarea", { id: "quizDescription", placeholder: "Quiz Description",
+            rows: "8", cols: "40" }),
         React.createElement(
             "div",
             { className: "sliderPlusLabel" },
@@ -300,14 +310,32 @@ var createQuestionsWindow = function createQuestionsWindow(csrf) {
     var questions = document.querySelector("#questions");
     for (var i = 0; i < numQuestions; i++) {
         var questionContainer = questions.querySelector("#questionContainer" + i);
+
+        // set value of question to existing value if modifying a quiz
+        if (quizLoaded) {
+            var questionTextArea = questionContainer.querySelector(".question");
+            questionTextArea.value = quiz.questions[i].question;
+        }
         var answerContainers = questionContainer.querySelector(".answerContainers");
         for (var j = 0; j < answersPerQuestion; j++) {
             var answerContainer = answerContainers.querySelector("#answerContainer" + j);
+            // set value of answer to existing value if modifying a quiz
+            if (quizLoaded) {
+                var answerTextArea = answerContainer.querySelector(".answer");
+                answerTextArea.value = quiz.questions[i].answers[j].answer;
+            }
 
             var _loop = function _loop(k) {
                 var outcomeContainer = answerContainer.querySelector("#outcomeContainer" + k);
                 var weightSlider = outcomeContainer.querySelector(".weight");
-                weightSlider.value = 0;
+                // set weights to existing value if modifying a quiz
+                if (quizLoaded) {
+                    var weightSliderLabel = outcomeContainer.querySelector(".weightSliderLabel");
+                    weightSlider.value = quiz.questions[i].answers[j].weights[k].weight;
+                    weightSliderLabel.innerHTML = weightSlider.value;
+                } else {
+                    weightSlider.value = 0;
+                }
                 weightSlider.addEventListener("input", function (e) {
                     outcomeContainer.querySelector(".weightSliderLabel").innerHTML = e.target.value;
                 });
@@ -324,39 +352,86 @@ var createQuestionsWindow = function createQuestionsWindow(csrf) {
     });
 };
 
-// render intitial window and setup events for the sliders/buttons
+// render intitial window, setup events, and set initial values
 var createInitialWindow = function createInitialWindow(csrf) {
-    ReactDOM.render(React.createElement(InitialWindow, { csrf: csrf }), document.querySelector("#content"));
+    ReactDOM.render(React.createElement(InitialWindow, { csrf: csrf, quizName: quizName, quizDescription: quizDescription,
+        numQuestions: numQuestions, answersPerQuestion: answersPerQuestion, numOutcomes: numOutcomes }), document.querySelector("#content"));
     document.querySelector("#initialSubmitButton").addEventListener("click", function () {
         handleInitialWindow();
     });
+
+    // add initial slider/label values and setup events
     var numQuestionsSlider = document.querySelector("#numQuestions");
-    numQuestionsSlider.value = 5;
+    var numQuestionsLabel = document.querySelector("#questionSliderLabel");
+    numQuestionsSlider.value = numQuestions;
+    numQuestionsLabel.innerHTML = numQuestions;
     numQuestionsSlider.addEventListener("input", function (e) {
-        document.querySelector("#questionSliderLabel").innerHTML = e.target.value;
+        numQuestionsLabel.innerHTML = e.target.value;
     });
+
     var numOutcomesSlider = document.querySelector("#numOutcomes");
-    numOutcomesSlider.value = 2;
+    var numOutcomesLabel = document.querySelector("#outcomeSliderLabel");
+    numOutcomesSlider.value = numOutcomes;
+    numOutcomesLabel.innerHTML = numOutcomes;
     numOutcomesSlider.addEventListener("input", function (e) {
-        document.querySelector("#outcomeSliderLabel").innerHTML = e.target.value;
+        numOutcomesLabel.innerHTML = e.target.value;
     });
+
     var answersPerQuestionSlider = document.querySelector("#answersPerQuestion");
-    answersPerQuestionSlider.value = 4;
+    var answersPerQuestionLabel = document.querySelector("#answersPerQuestionSliderLabel");
+    answersPerQuestionSlider.value = answersPerQuestion;
+    answersPerQuestionLabel.innerHTML = answersPerQuestion;
     answersPerQuestionSlider.addEventListener("input", function (e) {
-        document.querySelector("#answersPerQuestionSliderLabel").innerHTML = e.target.value;
+        answersPerQuestionLabel.innerHTML = e.target.value;
     });
+
+    // set initial quiz name/quiz description values if modifying an existing quiz
+    if (quizLoaded) {
+        var quizNameInput = document.querySelector("#quizName");
+        var quizDescriptionTextArea = document.querySelector("#quizDescription");
+        quizNameInput.value = quizName;
+        quizDescriptionTextArea.value = quizDescription;
+    }
 };
 
-// render outcomes window to content and setup button event
+// render outcomes window to content, setup button events, and set initial values
 var createOutcomesWindow = function createOutcomesWindow(csrf) {
     ReactDOM.render(React.createElement(OutcomesWindow, { csrf: csrf }), document.querySelector("#content"));
     document.querySelector("#outcomeSubmitButton").addEventListener("click", function () {
         handleQuizOutcomes();
     });
+
+    if (quizLoaded) {
+        for (var i = 0; i < numOutcomes; i++) {
+            var outcomeNameInput = document.querySelector("#outcomeName" + i);
+            var outcomeDescriptionTextArea = document.querySelector("#outcomeDescription" + i);
+            outcomeNameInput.value = outcomes[i].name;
+            outcomeDescriptionTextArea.value = outcomes[i].description;
+        }
+    }
+};
+
+var loadQuizToChange = function loadQuizToChange(quizToChange, csrf) {
+    sendAjax("GET", "/getQuiz", { quizId: quizToChange }, function (result) {
+        quiz = result.quiz;
+        quizName = quiz.name;
+        quizDescription = quiz.description;
+        numQuestions = quiz.questions.length;
+        numOutcomes = quiz.outcomes.length;
+        answersPerQuestion = quiz.questions[0].answers.length;
+        outcomes = quiz.outcomes;
+        quizLoaded = true;
+        createInitialWindow(csrf);
+    });
 };
 
 var setup = function setup(csrf) {
-    createInitialWindow(csrf);
+    var quizToChange = document.querySelector("#quizToChange").value;
+    if (quizToChange != "") {
+        loadQuizToChange(quizToChange, csrf);
+    } else {
+        createInitialWindow(csrf);
+    }
 };
 
 var getToken = function getToken() {
@@ -393,6 +468,7 @@ var sendAjax = function sendAjax(type, action, data, success) {
         dataType: "json",
         success: success,
         error: function error(xhr, status, _error) {
+            console.log(xhr.responseText);
             handleError(JSON.parse(xhr.responseText).error);
         }
     });

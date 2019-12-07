@@ -13,6 +13,7 @@ const router = (app) => {
   app.get('/makeQuiz', mid.requiresSecure, mid.requiresLogin, controllers.Quiz.makeQuizPage);
   app.post('/makeQuiz', mid.requiresLogin, controllers.Quiz.createQuiz);
   app.post('/deleteQuiz', mid.requiresLogin, controllers.Quiz.deleteQuiz);
+  app.post('/updateQuiz', mid.requiresSecure, controllers.Quiz.updateQuiz);
   app.get('/getQuizzes', mid.requiresSecure, controllers.Quiz.getQuizzes);
   app.get('/getQuiz', mid.requiresSecure, controllers.Quiz.getQuiz);
   app.get('/takeQuiz', mid.requiresSecure, controllers.Quiz.takeQuizPage);

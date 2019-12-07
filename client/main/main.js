@@ -50,8 +50,7 @@ const handleChangePassword = (e) => {
 const handleDeleteQuiz = (e, csrf, quizId) => {
     e.preventDefault();
 
-    sendAjax('POST', '/deleteQuiz', {quizId, _csrf: csrf}, loadOwnedQuizzesFromServer);
-
+    sendAjax('POST', '/deleteQuiz', { quizId, _csrf: csrf }, () => loadOwnedQuizzesFromServer(true));
     return false;
 };
 
@@ -127,7 +126,7 @@ const QuizList = function (props) {
         );
     }
 
-    const quizNodes = props.quizzes.map(function (quiz) {
+    let quizNodes = props.quizzes.map(function (quiz) {
         return (
             <div key={quiz._id} className="quiz">
                 <h3 className="quizName"> {quiz.name} </h3>
@@ -149,12 +148,12 @@ const OwnedQuizList = function (props) {
     if (props.quizzes.length === 0) {
         return (
             <div className="quizList">
-                <h3 className="emptyQuizzes">No quizzes yet</h3>
+                <p id="noOwnedQuizzes">No quizzes yet</p>
             </div>
         );
     }
 
-    const quizNodes = props.quizzes.map(function (quiz) {
+    let quizNodes = props.quizzes.map(function (quiz) {
         return (
             <div key={quiz._id} className="ownedQuiz">
                 <h3 className="quizName"> {quiz.name} </h3>
@@ -195,7 +194,7 @@ const loadQuizzesFromServer = () => {
     });
 };
 
-const loadOwnedQuizzesFromServer = () => {
+const loadOwnedQuizzesFromServer = (refresh = false) => {
     let filterByOwner = true;
     sendAjax('GET', '/getQuizzes', filterByOwner, (data) => {
         ReactDOM.render(
@@ -204,13 +203,20 @@ const loadOwnedQuizzesFromServer = () => {
         );
         let ownedQuizzesButton = document.querySelector("#ownedQuizzesButton");
         let ownedQuizzesDiv = document.querySelector("#ownedQuizzes");
-        ownedQuizzesDiv.style.maxHeight = 0;
-        ownedQuizzesDiv.style.padding = 0;
-        ownedQuizzesDiv.style.margin = 0;
+        if (!refresh) {
+            ownedQuizzesDiv.style.maxHeight = 0;
+            ownedQuizzesDiv.style.padding = 0;
+            ownedQuizzesDiv.style.margin = 0;
+        }
         ownedQuizzesButton.onclick = () => {
             if (ownedQuizzesDiv.style.maxHeight == "0px") {
                 let numQuizzes = ownedQuizzesDiv.querySelectorAll(".ownedQuiz").length;
-                ownedQuizzesDiv.style.maxHeight = `${numQuizzes * 200}px`;
+                if (numQuizzes == 0) {
+                    ownedQuizzesDiv.style.maxHeight = "70px";
+                }
+                else {
+                    ownedQuizzesDiv.style.maxHeight = `${numQuizzes * 200}px`;
+                }
                 ownedQuizzesDiv.style.padding = "auto";
                 ownedQuizzesDiv.style.margin = "auto";
             }
@@ -223,11 +229,16 @@ const loadOwnedQuizzesFromServer = () => {
         };
         let ownedQuizzes = ownedQuizzesDiv.querySelectorAll(".ownedQuiz");
         let csrf = document.querySelector("#csrf").value;
-        for(let i = 0; i < ownedQuizzes.length; i++) {
+        for (let i = 0; i < ownedQuizzes.length; i++) {
             let deleteButton = ownedQuizzes[i].querySelector(".deleteButton");
+            let changeButton = ownedQuizzes[i].querySelector(".changeButton");
             let ownedQuizId = ownedQuizzes[i].querySelector(".quizId").value;
             deleteButton.onclick = (e) => {
                 handleDeleteQuiz(e, csrf, ownedQuizId);
+            };
+            changeButton.onclick = (e) => {
+                let url = `/makeQuiz?quizToChange=${ownedQuizId}`;
+                window.location = url;
             };
         }
     });
@@ -280,8 +291,8 @@ const createMyAccountWindow = (csrf, ownedQuizzes) => {
 
 const setup = (csrf) => {
     // setup nav bar based on whether the user is logged in or not
-    const linkOptions = document.querySelector("#linkOptions");
-    const loggedIn = document.querySelector("#isLoggedIn").innerHTML == "true";
+    let linkOptions = document.querySelector("#linkOptions");
+    let loggedIn = document.querySelector("#isLoggedIn").innerHTML == "true";
     if (!loggedIn) {
         linkOptions.innerHTML = "<li class='navlink'><a id='loginButton'>Log In</a></li>";
         linkOptions.innerHTML += "<li class='navlink'><a id='signupButton'>Sign Up</a></li>"
@@ -292,9 +303,9 @@ const setup = (csrf) => {
         linkOptions.innerHTML += "<li class='navlink'><a id='myAccountButton'>My Account</a></li>";
     }
 
-    const loginButton = document.querySelector("#loginButton");
-    const signupButton = document.querySelector("#signupButton");
-    const myAccountButton = document.querySelector("#myAccountButton");
+    let loginButton = document.querySelector("#loginButton");
+    let signupButton = document.querySelector("#signupButton");
+    let myAccountButton = document.querySelector("#myAccountButton");
     if (signupButton) {
         signupButton.addEventListener("click", (e) => {
             e.preventDefault();

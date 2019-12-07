@@ -8,7 +8,7 @@ let outcomeProgress = {};
 
 // react element for a quiz question
 const QuestionWindow = (props) => {
-    const answerNodes = props.answers.map(function (answerObj) {
+    let answerNodes = props.answers.map(function (answerObj) {
         return (
             <div>
                 <p className="answerOption">{answerObj.answer}</p>
@@ -17,7 +17,7 @@ const QuestionWindow = (props) => {
     });
     return (
         <div id="questionWindow">
-            <h4>{props.question}</h4>
+            <h4 id="quizTakerQuestion">{props.question}</h4>
             <div>
                 {answerNodes}
             </div>
@@ -115,10 +115,8 @@ const createResultWindow = () => {
 
 // get the quiz with the given name and description from the server
 const loadQuizFromServer = () => {
-    let quizName = document.querySelector("#title").innerHTML;
-    let quizDescription = document.querySelector("#description").innerHTML;
     let quizId = document.querySelector("#quizId").value;
-    let url = `/getQuiz?name=${quizName}&description=${quizDescription}&quizId=${quizId}`;
+    let url = `/getQuiz?quizId=${quizId}`;
     sendAjax("GET", url, null, (result) => {
         quiz = result.quiz;
         let outcomes = quiz.outcomes;

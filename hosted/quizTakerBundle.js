@@ -26,7 +26,7 @@ var QuestionWindow = function QuestionWindow(props) {
         { id: "questionWindow" },
         React.createElement(
             "h4",
-            null,
+            { id: "quizTakerQuestion" },
             props.question
         ),
         React.createElement(
@@ -139,10 +139,8 @@ var createResultWindow = function createResultWindow() {
 
 // get the quiz with the given name and description from the server
 var loadQuizFromServer = function loadQuizFromServer() {
-    var quizName = document.querySelector("#title").innerHTML;
-    var quizDescription = document.querySelector("#description").innerHTML;
     var quizId = document.querySelector("#quizId").value;
-    var url = "/getQuiz?name=" + quizName + "&description=" + quizDescription + "&quizId=" + quizId;
+    var url = "/getQuiz?quizId=" + quizId;
     sendAjax("GET", url, null, function (result) {
         quiz = result.quiz;
         var outcomes = quiz.outcomes;
@@ -181,6 +179,7 @@ var sendAjax = function sendAjax(type, action, data, success) {
         dataType: "json",
         success: success,
         error: function error(xhr, status, _error) {
+            console.log(xhr.responseText);
             handleError(JSON.parse(xhr.responseText).error);
         }
     });

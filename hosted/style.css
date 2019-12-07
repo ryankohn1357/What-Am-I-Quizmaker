@@ -8,7 +8,7 @@ body {
 
 #title {
     margin-top: 50px;
-    padding: 5px;
+    padding: 15px;
     padding-right: 20px;
     padding-left: 20px;
     color: lawngreen;
@@ -16,6 +16,8 @@ body {
     border-radius: 100px;
     word-wrap: break-word;
     max-width: 60%;
+    min-width: 200px;
+    text-align: center;
     font-family: 'Kalam', cursive;
     font-size: 32pt;
 }
@@ -23,6 +25,7 @@ body {
 nav {
     border-bottom: gray 1px solid;
     width: 100%;
+    min-width: 600px;
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -124,6 +127,7 @@ form {
 
 .accountButton {
     text-align: center;
+    font-size: 18pt;
 }
 
 #initialQuizWindow, #outcomeWindow, .outcome {
@@ -140,6 +144,7 @@ form {
 #error {
     color: red;  
     padding-bottom: 10px;
+    text-align: center;
 }
 
 #quizDescription {
@@ -210,10 +215,15 @@ form {
     border-bottom: 5px solid darkgreen;
 }
 
-.answerOption {
+.answerOption, #quizTakerQuestion {
     padding: 5px;
-    max-width: 100%;
+    width: 100%;
     word-wrap: break-word;
+    text-align: center;
+}
+
+#questionWindow {
+    width: 100%;
 }
 
 .answerOption:hover {
@@ -315,4 +325,12 @@ form {
 #changePasswordForm, #ownedQuizzes {
     overflow: hidden;
     transition: 0.5s;
+}
+
+#noOwnedQuizzes {
+    font-weight: bold;
+    text-align: center;
+    border: 1px solid darkgreen;
+    width: 80%;
+    padding: 5px;
 }

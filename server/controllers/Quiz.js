@@ -20,7 +20,7 @@ const createQuiz = (req, res) => {
 
   const quizPromise = newQuiz.save();
 
-  quizPromise.then(() => res.json({ redirect: '/' }));
+  quizPromise.then(() => res.status(201).json({ redirect: '/' }));
 
   quizPromise.catch((err) => {
     console.log(err);
@@ -30,22 +30,49 @@ const createQuiz = (req, res) => {
   return quizPromise;
 };
 
+const updateQuiz = (req, res) => {
+  if (!req.body.quizId || !req.body.name || !req.body.description
+    || !req.body.questions || !req.body.outcomes) {
+    return res.status(400).json({ error: 'Missing required field' });
+  }
+
+  const quizData = {
+    name: req.body.name,
+    description: req.body.description,
+    questions: req.body.questions,
+    outcomes: req.body.outcomes,
+  };
+
+  return Quiz.QuizModel.updateQuiz(req.body.quizId, quizData, (err) => {
+    if (err) {
+      return res.status(400).json({ error: 'Failed to update quiz' });
+    }
+    return res.status(200).json({ redirect: '/' });
+  });
+};
+
 const deleteQuiz = (req, res) => {
   if (!req.body.quizId) {
     return res.status(400).json({ error: 'Missing quiz id' });
   }
 
-  return Quiz.QuizModel.deleteQuiz(req.body.quizId, req.session.account._id, (doc) => {
-    console.log(doc);
-    if (!doc || !doc.deletedCount || doc.deletedCount !== 1) {
+  return Quiz.QuizModel.deleteQuiz(req.body.quizId, (err) => {
+    if (err) {
       return res.status(400).json({ error: 'Failed to delete quiz' });
     }
-    return res.status(204);
+    return res.status(200).json({ message: 'Quiz deleted' });
   });
 };
 
 // returns makeQuiz view
-const makeQuizPage = (req, res) => res.render('makeQuiz', { csrfToken: req.csrfToken() });
+const makeQuizPage = (req, res) => {
+  let quizToChange = '';
+  if (req.query.quizToChange) {
+    quizToChange = req.query.quizToChange;
+  }
+  return res.render('makeQuiz', { csrfToken: req.csrfToken(), quizToChange });
+};
+
 
 // returns takeQuiz view with the given quiz name and description
 const takeQuizPage = (req, res) => {
@@ -103,3 +130,4 @@ module.exports.takeQuizPage = takeQuizPage;
 module.exports.getQuizzes = getQuizzes;
 module.exports.getQuiz = getQuiz;
 module.exports.deleteQuiz = deleteQuiz;
+module.exports.updateQuiz = updateQuiz;

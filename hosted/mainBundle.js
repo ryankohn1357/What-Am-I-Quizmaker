@@ -52,8 +52,9 @@ var handleChangePassword = function handleChangePassword(e) {
 var handleDeleteQuiz = function handleDeleteQuiz(e, csrf, quizId) {
     e.preventDefault();
 
-    sendAjax('POST', '/deleteQuiz', { quizId: quizId, _csrf: csrf }, loadOwnedQuizzesFromServer);
-
+    sendAjax('POST', '/deleteQuiz', { quizId: quizId, _csrf: csrf }, function () {
+        return loadOwnedQuizzesFromServer(true);
+    });
     return false;
 };
 
@@ -179,8 +180,8 @@ var OwnedQuizList = function OwnedQuizList(props) {
             "div",
             { className: "quizList" },
             React.createElement(
-                "h3",
-                { className: "emptyQuizzes" },
+                "p",
+                { id: "noOwnedQuizzes" },
                 "No quizzes yet"
             )
         );
@@ -245,18 +246,26 @@ var loadQuizzesFromServer = function loadQuizzesFromServer() {
 };
 
 var loadOwnedQuizzesFromServer = function loadOwnedQuizzesFromServer() {
+    var refresh = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
     var filterByOwner = true;
     sendAjax('GET', '/getQuizzes', filterByOwner, function (data) {
         ReactDOM.render(React.createElement(OwnedQuizList, { quizzes: data.quizzes }), document.querySelector("#ownedQuizzes"));
         var ownedQuizzesButton = document.querySelector("#ownedQuizzesButton");
         var ownedQuizzesDiv = document.querySelector("#ownedQuizzes");
-        ownedQuizzesDiv.style.maxHeight = 0;
-        ownedQuizzesDiv.style.padding = 0;
-        ownedQuizzesDiv.style.margin = 0;
+        if (!refresh) {
+            ownedQuizzesDiv.style.maxHeight = 0;
+            ownedQuizzesDiv.style.padding = 0;
+            ownedQuizzesDiv.style.margin = 0;
+        }
         ownedQuizzesButton.onclick = function () {
             if (ownedQuizzesDiv.style.maxHeight == "0px") {
                 var numQuizzes = ownedQuizzesDiv.querySelectorAll(".ownedQuiz").length;
-                ownedQuizzesDiv.style.maxHeight = numQuizzes * 200 + "px";
+                if (numQuizzes == 0) {
+                    ownedQuizzesDiv.style.maxHeight = "70px";
+                } else {
+                    ownedQuizzesDiv.style.maxHeight = numQuizzes * 200 + "px";
+                }
                 ownedQuizzesDiv.style.padding = "auto";
                 ownedQuizzesDiv.style.margin = "auto";
             } else {
@@ -271,9 +280,14 @@ var loadOwnedQuizzesFromServer = function loadOwnedQuizzesFromServer() {
 
         var _loop2 = function _loop2(i) {
             var deleteButton = ownedQuizzes[i].querySelector(".deleteButton");
+            var changeButton = ownedQuizzes[i].querySelector(".changeButton");
             var ownedQuizId = ownedQuizzes[i].querySelector(".quizId").value;
             deleteButton.onclick = function (e) {
                 handleDeleteQuiz(e, csrf, ownedQuizId);
+            };
+            changeButton.onclick = function (e) {
+                var url = "/makeQuiz?quizToChange=" + ownedQuizId;
+                window.location = url;
             };
         };
 
@@ -394,6 +408,7 @@ var sendAjax = function sendAjax(type, action, data, success) {
         dataType: "json",
         success: success,
         error: function error(xhr, status, _error) {
+            console.log(xhr.responseText);
             handleError(JSON.parse(xhr.responseText).error);
         }
     });
