@@ -66,6 +66,7 @@ textarea, input {
 
 .quiz {
     padding: 5px;
+    padding-left: 15px;
     margin: 5px;
     display: flex;
     flex-direction: column;
@@ -128,6 +129,12 @@ form {
 .accountButton {
     text-align: center;
     font-size: 18pt;
+    border-radius: 5px;
+    padding: 12px;
+}
+
+.accountButton:hover {
+    text-decoration: underline;
 }
 
 #initialQuizWindow, #outcomeWindow, .outcome {
@@ -322,9 +329,22 @@ form {
     align-items: center;
 }
 
-#changePasswordForm, #ownedQuizzes {
+#changePasswordForm {
     overflow: hidden;
     transition: 0.5s;
+}
+
+#myAccount {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#ownedQuizzes {
+    overflow: hidden;
+    transition: 0.3s;
+    width: 100%;
 }
 
 #noOwnedQuizzes {
@@ -333,4 +353,76 @@ form {
     border: 1px solid darkgreen;
     width: 80%;
     padding: 5px;
+}
+
+#ownedQuizList {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.ownedQuiz {
+    padding: 10px;
+    width: 80%;
+    border: 1px solid darkgreen;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.changeButton, .deleteButton {
+    color: beige;
+    background-color: darkgreen;
+    border-radius: 10px;
+    padding: 5px;
+    width: 50%;
+    text-align: center;
+    margin-bottom: 5px;
+    margin-top: 0;
+}
+
+.changeButton:hover, .deleteButton:hover {
+    color: darkgreen;
+    background-color: beige;
+    border: 1px solid darkgreen;
+}
+
+#yesButton, #noButton {
+    width: 50%;
+}
+
+#yesButton:hover, #noButton:hover {
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+#backButton {
+    background-color: darkgreen;
+    color: beige;
+    font-size: 16pt;
+    border-radius: 10px;
+    padding: 10px;
+    width: 75px;
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom: 0;
+}
+
+#backButton:hover {
+    color: darkgreen;
+    background-color: beige;
+    border: 1px solid darkgreen;
+}
+
+#confirmationWindow {
+    max-width: 100%;
+}
+
+#confirmationMessage {
+    word-wrap: break-word;
+    max-width: 100%;
 }

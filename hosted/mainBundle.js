@@ -53,7 +53,7 @@ var handleDeleteQuiz = function handleDeleteQuiz(e, csrf, quizId) {
     e.preventDefault();
 
     sendAjax('POST', '/deleteQuiz', { quizId: quizId, _csrf: csrf }, function () {
-        return loadOwnedQuizzesFromServer(true);
+        return createMyAccountWindow(csrf, true);
     });
     return false;
 };
@@ -126,7 +126,12 @@ var MyAccountWindow = function MyAccountWindow(props) {
             { id: "ownedQuizzesButton", className: "accountButton" },
             "My Quizzes"
         ),
-        React.createElement("div", { id: "ownedQuizzes" })
+        React.createElement("div", { id: "ownedQuizzes" }),
+        React.createElement(
+            "p",
+            { id: "backButton" },
+            "Back"
+        )
     );
 };
 
@@ -174,6 +179,7 @@ var QuizList = function QuizList(props) {
     );
 };
 
+// react element to display a list of all the quizzes a particular user has made
 var OwnedQuizList = function OwnedQuizList(props) {
     if (props.quizzes.length === 0) {
         return React.createElement(
@@ -198,6 +204,7 @@ var OwnedQuizList = function OwnedQuizList(props) {
                 quiz.name,
                 " "
             ),
+            React.createElement("br", null),
             React.createElement(
                 "p",
                 { className: "changeButton" },
@@ -214,8 +221,35 @@ var OwnedQuizList = function OwnedQuizList(props) {
 
     return React.createElement(
         "div",
-        { className: "quizList" },
+        { id: "ownedQuizList" },
         quizNodes
+    );
+};
+
+// react element to confirm a choice a user has made
+var ConfirmationWindow = function ConfirmationWindow(props) {
+    return React.createElement(
+        "div",
+        { id: "confirmationWindow" },
+        React.createElement(
+            "h4",
+            { id: "confirmationMessage" },
+            props.message
+        ),
+        React.createElement(
+            "div",
+            { id: "confirmationButtons" },
+            React.createElement(
+                "p",
+                { className: "confirmationButton", id: "yesButton" },
+                "Yes"
+            ),
+            React.createElement(
+                "p",
+                { className: "confirmationButton", id: "noButton" },
+                "No"
+            )
+        )
     );
 };
 
@@ -245,14 +279,17 @@ var loadQuizzesFromServer = function loadQuizzesFromServer() {
     });
 };
 
+// get all the quizzes that have been made by the user and
+// set up events. If not being refreshed, setup initial tab states
 var loadOwnedQuizzesFromServer = function loadOwnedQuizzesFromServer() {
     var refresh = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
     var filterByOwner = true;
-    sendAjax('GET', '/getQuizzes', filterByOwner, function (data) {
+    sendAjax('GET', '/getQuizzes', { filterByOwner: filterByOwner }, function (data) {
         ReactDOM.render(React.createElement(OwnedQuizList, { quizzes: data.quizzes }), document.querySelector("#ownedQuizzes"));
         var ownedQuizzesButton = document.querySelector("#ownedQuizzesButton");
         var ownedQuizzesDiv = document.querySelector("#ownedQuizzes");
+        var ownedQuizzes = ownedQuizzesDiv.querySelectorAll(".ownedQuiz");
         if (!refresh) {
             ownedQuizzesDiv.style.maxHeight = 0;
             ownedQuizzesDiv.style.padding = 0;
@@ -264,7 +301,7 @@ var loadOwnedQuizzesFromServer = function loadOwnedQuizzesFromServer() {
                 if (numQuizzes == 0) {
                     ownedQuizzesDiv.style.maxHeight = "70px";
                 } else {
-                    ownedQuizzesDiv.style.maxHeight = numQuizzes * 200 + "px";
+                    ownedQuizzesDiv.style.maxHeight = ownedQuizzes.length * 300 + "px";
                 }
                 ownedQuizzesDiv.style.padding = "auto";
                 ownedQuizzesDiv.style.margin = "auto";
@@ -275,15 +312,19 @@ var loadOwnedQuizzesFromServer = function loadOwnedQuizzesFromServer() {
                 document.querySelector("#error").innerText = "";
             }
         };
-        var ownedQuizzes = ownedQuizzesDiv.querySelectorAll(".ownedQuiz");
         var csrf = document.querySelector("#csrf").value;
 
         var _loop2 = function _loop2(i) {
+            var quizName = ownedQuizzes[i].querySelector(".quizName").innerText;
             var deleteButton = ownedQuizzes[i].querySelector(".deleteButton");
             var changeButton = ownedQuizzes[i].querySelector(".changeButton");
             var ownedQuizId = ownedQuizzes[i].querySelector(".quizId").value;
             deleteButton.onclick = function (e) {
-                handleDeleteQuiz(e, csrf, ownedQuizId);
+                createConfirmationWindow("Are you sure you want to delete " + quizName + "?", function () {
+                    return handleDeleteQuiz(e, csrf, ownedQuizId);
+                }, function () {
+                    return createMyAccountWindow(csrf, true);
+                });
             };
             changeButton.onclick = function (e) {
                 var url = "/makeQuiz?quizToChange=" + ownedQuizId;
@@ -297,6 +338,14 @@ var loadOwnedQuizzesFromServer = function loadOwnedQuizzesFromServer() {
     });
 };
 
+var createConfirmationWindow = function createConfirmationWindow(message, yesMethod, noMethod) {
+    ReactDOM.render(React.createElement(ConfirmationWindow, { message: message }), document.querySelector("#content"));
+    var yesButton = document.querySelector("#yesButton");
+    var noButton = document.querySelector("#noButton");
+    yesButton.onclick = yesMethod;
+    noButton.onclick = noMethod;
+};
+
 // render login window to content
 var createLoginWindow = function createLoginWindow(csrf) {
     ReactDOM.render(React.createElement(LoginWindow, { csrf: csrf }), document.querySelector("#content"));
@@ -308,15 +357,19 @@ var createSignupWindow = function createSignupWindow(csrf) {
 };
 
 // render account window to content
-var createMyAccountWindow = function createMyAccountWindow(csrf, ownedQuizzes) {
-    ReactDOM.render(React.createElement(MyAccountWindow, { csrf: csrf, ownedQuizzes: ownedQuizzes }), document.querySelector("#content"));
+var createMyAccountWindow = function createMyAccountWindow(csrf) {
+    var refresh = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
+    ReactDOM.render(React.createElement(MyAccountWindow, { csrf: csrf }), document.querySelector("#content"));
+
+    // start password change tab to be hidden
     var changePasswordButton = document.querySelector("#changePasswordButton");
     var changePasswordForm = document.querySelector("#changePasswordForm");
     changePasswordForm.style.maxHeight = 0;
     changePasswordForm.style.padding = 0;
     changePasswordForm.style.margin = 0;
 
+    // setup events
     changePasswordButton.onclick = function () {
         if (changePasswordForm.style.maxHeight == "0px") {
             changePasswordForm.style.maxHeight = "150px";
@@ -329,7 +382,13 @@ var createMyAccountWindow = function createMyAccountWindow(csrf, ownedQuizzes) {
             changePasswordForm.style.margin = 0;
         }
     };
-    loadOwnedQuizzesFromServer();
+
+    var backButton = document.querySelector("#backButton");
+    backButton.onclick = function () {
+        window.location = "/";
+    };
+
+    loadOwnedQuizzesFromServer(refresh);
 };
 
 var setup = function setup(csrf) {
@@ -365,7 +424,7 @@ var setup = function setup(csrf) {
     if (myAccountButton) {
         myAccountButton.addEventListener("click", function (e) {
             e.preventDefault();
-            createMyAccountWindow(csrf, null);
+            createMyAccountWindow(csrf);
             return false;
         });
     }

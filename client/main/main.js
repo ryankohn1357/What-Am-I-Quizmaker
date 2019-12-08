@@ -50,7 +50,7 @@ const handleChangePassword = (e) => {
 const handleDeleteQuiz = (e, csrf, quizId) => {
     e.preventDefault();
 
-    sendAjax('POST', '/deleteQuiz', { quizId, _csrf: csrf }, () => loadOwnedQuizzesFromServer(true));
+    sendAjax('POST', '/deleteQuiz', { quizId, _csrf: csrf }, () => createMyAccountWindow(csrf, true));
     return false;
 };
 
@@ -112,6 +112,7 @@ const MyAccountWindow = (props) => {
             </form>
             <h4 id="ownedQuizzesButton" className="accountButton">My Quizzes</h4>
             <div id="ownedQuizzes"></div>
+            <p id="backButton">Back</p>
         </div>
     );
 };
@@ -144,6 +145,7 @@ const QuizList = function (props) {
     );
 };
 
+// react element to display a list of all the quizzes a particular user has made
 const OwnedQuizList = function (props) {
     if (props.quizzes.length === 0) {
         return (
@@ -157,6 +159,7 @@ const OwnedQuizList = function (props) {
         return (
             <div key={quiz._id} className="ownedQuiz">
                 <h3 className="quizName"> {quiz.name} </h3>
+                <br></br>
                 <p className="changeButton">Change</p>
                 <p className="deleteButton">Delete</p>
                 <input hidden className="quizId" value={quiz._id}></input>
@@ -165,8 +168,21 @@ const OwnedQuizList = function (props) {
     });
 
     return (
-        <div className="quizList">
+        <div id="ownedQuizList">
             {quizNodes}
+        </div>
+    );
+}
+
+// react element to confirm a choice a user has made
+const ConfirmationWindow = function (props) {
+    return (
+        <div id="confirmationWindow">
+            <h4 id="confirmationMessage">{props.message}</h4>
+            <div id="confirmationButtons">
+                <p className="confirmationButton" id="yesButton">Yes</p>
+                <p className="confirmationButton" id="noButton">No</p>
+            </div>
         </div>
     );
 }
@@ -194,15 +210,18 @@ const loadQuizzesFromServer = () => {
     });
 };
 
+// get all the quizzes that have been made by the user and
+// set up events. If not being refreshed, setup initial tab states
 const loadOwnedQuizzesFromServer = (refresh = false) => {
     let filterByOwner = true;
-    sendAjax('GET', '/getQuizzes', filterByOwner, (data) => {
+    sendAjax('GET', '/getQuizzes', {filterByOwner}, (data) => {
         ReactDOM.render(
             <OwnedQuizList quizzes={data.quizzes} />,
             document.querySelector("#ownedQuizzes")
         );
         let ownedQuizzesButton = document.querySelector("#ownedQuizzesButton");
         let ownedQuizzesDiv = document.querySelector("#ownedQuizzes");
+        let ownedQuizzes = ownedQuizzesDiv.querySelectorAll(".ownedQuiz");
         if (!refresh) {
             ownedQuizzesDiv.style.maxHeight = 0;
             ownedQuizzesDiv.style.padding = 0;
@@ -215,7 +234,7 @@ const loadOwnedQuizzesFromServer = (refresh = false) => {
                     ownedQuizzesDiv.style.maxHeight = "70px";
                 }
                 else {
-                    ownedQuizzesDiv.style.maxHeight = `${numQuizzes * 200}px`;
+                    ownedQuizzesDiv.style.maxHeight = `${ownedQuizzes.length * 300}px`;
                 }
                 ownedQuizzesDiv.style.padding = "auto";
                 ownedQuizzesDiv.style.margin = "auto";
@@ -227,14 +246,16 @@ const loadOwnedQuizzesFromServer = (refresh = false) => {
                 document.querySelector("#error").innerText = "";
             }
         };
-        let ownedQuizzes = ownedQuizzesDiv.querySelectorAll(".ownedQuiz");
         let csrf = document.querySelector("#csrf").value;
         for (let i = 0; i < ownedQuizzes.length; i++) {
+            let quizName = ownedQuizzes[i].querySelector(".quizName").innerText;
             let deleteButton = ownedQuizzes[i].querySelector(".deleteButton");
             let changeButton = ownedQuizzes[i].querySelector(".changeButton");
             let ownedQuizId = ownedQuizzes[i].querySelector(".quizId").value;
             deleteButton.onclick = (e) => {
-                handleDeleteQuiz(e, csrf, ownedQuizId);
+                createConfirmationWindow(`Are you sure you want to delete ${quizName}?`,
+                () => handleDeleteQuiz(e, csrf, ownedQuizId),
+                () => createMyAccountWindow(csrf, true))
             };
             changeButton.onclick = (e) => {
                 let url = `/makeQuiz?quizToChange=${ownedQuizId}`;
@@ -242,6 +263,17 @@ const loadOwnedQuizzesFromServer = (refresh = false) => {
             };
         }
     });
+};
+
+const createConfirmationWindow = (message, yesMethod, noMethod) => {
+    ReactDOM.render(
+        <ConfirmationWindow message={message} />,
+        document.querySelector("#content")
+    );
+    let yesButton = document.querySelector("#yesButton");
+    let noButton = document.querySelector("#noButton");
+    yesButton.onclick = yesMethod;
+    noButton.onclick = noMethod;
 };
 
 // render login window to content
@@ -261,18 +293,20 @@ const createSignupWindow = (csrf) => {
 };
 
 // render account window to content
-const createMyAccountWindow = (csrf, ownedQuizzes) => {
+const createMyAccountWindow = (csrf, refresh=false) => {
     ReactDOM.render(
-        <MyAccountWindow csrf={csrf} ownedQuizzes={ownedQuizzes} />,
+        <MyAccountWindow csrf={csrf} />,
         document.querySelector("#content")
     );
 
+    // start password change tab to be hidden
     let changePasswordButton = document.querySelector("#changePasswordButton");
     let changePasswordForm = document.querySelector("#changePasswordForm");
     changePasswordForm.style.maxHeight = 0;
     changePasswordForm.style.padding = 0;
     changePasswordForm.style.margin = 0;
 
+    // setup events
     changePasswordButton.onclick = () => {
         if (changePasswordForm.style.maxHeight == "0px") {
             changePasswordForm.style.maxHeight = "150px";
@@ -286,7 +320,13 @@ const createMyAccountWindow = (csrf, ownedQuizzes) => {
             changePasswordForm.style.margin = 0;
         }
     };
-    loadOwnedQuizzesFromServer();
+
+    let backButton = document.querySelector("#backButton");
+    backButton.onclick = () => {
+        window.location = "/";
+    }
+
+    loadOwnedQuizzesFromServer(refresh);
 };
 
 const setup = (csrf) => {
@@ -323,7 +363,7 @@ const setup = (csrf) => {
     if (myAccountButton) {
         myAccountButton.addEventListener("click", (e) => {
             e.preventDefault();
-            createMyAccountWindow(csrf, null);
+            createMyAccountWindow(csrf);
             return false;
         });
     }

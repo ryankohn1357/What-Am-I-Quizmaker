@@ -45,7 +45,7 @@ var ResultWindow = function ResultWindow(props) {
         React.createElement(
             "h1",
             null,
-            "You are a ",
+            "You got ",
             props.result,
             "!"
         ),

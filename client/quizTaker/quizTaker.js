@@ -29,7 +29,7 @@ const QuestionWindow = (props) => {
 const ResultWindow = (props) => {
     return (
         <div id="resultWindow">
-            <h1>You are a {props.result}!</h1>
+            <h1>You got {props.result}!</h1>
             <p>{props.description}</p>
             <button className="formSubmit" id="returnButton">Return</button>
         </div>
