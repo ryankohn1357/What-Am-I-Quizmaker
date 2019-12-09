@@ -310,7 +310,6 @@ var createQuestionsWindow = function createQuestionsWindow(csrf) {
     var questions = document.querySelector("#questions");
     for (var i = 0; i < numQuestions; i++) {
         var questionContainer = questions.querySelector("#questionContainer" + i);
-
         // set value of question to existing value if modifying a quiz
         if (quizLoaded) {
             var questionTextArea = questionContainer.querySelector(".question");

@@ -245,7 +245,6 @@ const createQuestionsWindow = (csrf) => {
     let questions = document.querySelector("#questions");
     for (let i = 0; i < numQuestions; i++) {
         let questionContainer = questions.querySelector(`#questionContainer${i}`);
-
         // set value of question to existing value if modifying a quiz
         if(quizLoaded) {
             let questionTextArea = questionContainer.querySelector(".question");

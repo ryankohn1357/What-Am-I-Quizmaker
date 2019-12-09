@@ -149,7 +149,7 @@ const QuizList = function (props) {
 const OwnedQuizList = function (props) {
     if (props.quizzes.length === 0) {
         return (
-            <div className="quizList">
+            <div id="ownedQuizList">
                 <p id="noOwnedQuizzes">No quizzes yet</p>
             </div>
         );
@@ -248,12 +248,11 @@ const loadOwnedQuizzesFromServer = (refresh = false) => {
         };
         let csrf = document.querySelector("#csrf").value;
         for (let i = 0; i < ownedQuizzes.length; i++) {
-            let quizName = ownedQuizzes[i].querySelector(".quizName").innerText;
             let deleteButton = ownedQuizzes[i].querySelector(".deleteButton");
             let changeButton = ownedQuizzes[i].querySelector(".changeButton");
             let ownedQuizId = ownedQuizzes[i].querySelector(".quizId").value;
             deleteButton.onclick = (e) => {
-                createConfirmationWindow(`Are you sure you want to delete ${quizName}?`,
+                createConfirmationWindow(`Are you sure you want to delete quiz?`,
                 () => handleDeleteQuiz(e, csrf, ownedQuizId),
                 () => createMyAccountWindow(csrf, true))
             };
@@ -265,6 +264,8 @@ const loadOwnedQuizzesFromServer = (refresh = false) => {
     });
 };
 
+
+// render generic yes/no confirmation window
 const createConfirmationWindow = (message, yesMethod, noMethod) => {
     ReactDOM.render(
         <ConfirmationWindow message={message} />,

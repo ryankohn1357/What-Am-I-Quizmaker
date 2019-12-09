@@ -184,7 +184,7 @@ var OwnedQuizList = function OwnedQuizList(props) {
     if (props.quizzes.length === 0) {
         return React.createElement(
             "div",
-            { className: "quizList" },
+            { id: "ownedQuizList" },
             React.createElement(
                 "p",
                 { id: "noOwnedQuizzes" },
@@ -315,12 +315,11 @@ var loadOwnedQuizzesFromServer = function loadOwnedQuizzesFromServer() {
         var csrf = document.querySelector("#csrf").value;
 
         var _loop2 = function _loop2(i) {
-            var quizName = ownedQuizzes[i].querySelector(".quizName").innerText;
             var deleteButton = ownedQuizzes[i].querySelector(".deleteButton");
             var changeButton = ownedQuizzes[i].querySelector(".changeButton");
             var ownedQuizId = ownedQuizzes[i].querySelector(".quizId").value;
             deleteButton.onclick = function (e) {
-                createConfirmationWindow("Are you sure you want to delete " + quizName + "?", function () {
+                createConfirmationWindow("Are you sure you want to delete quiz?", function () {
                     return handleDeleteQuiz(e, csrf, ownedQuizId);
                 }, function () {
                     return createMyAccountWindow(csrf, true);
@@ -338,6 +337,7 @@ var loadOwnedQuizzesFromServer = function loadOwnedQuizzesFromServer() {
     });
 };
 
+// render generic yes/no confirmation window
 var createConfirmationWindow = function createConfirmationWindow(message, yesMethod, noMethod) {
     ReactDOM.render(React.createElement(ConfirmationWindow, { message: message }), document.querySelector("#content"));
     var yesButton = document.querySelector("#yesButton");
